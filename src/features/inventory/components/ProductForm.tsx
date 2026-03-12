@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-// @ts-expect-error Typescript ESM resolution issue con RHF v7
+// @ts-ignore Typescript ESM resolution issue con RHF v7
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
