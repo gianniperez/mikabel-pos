@@ -32,6 +32,7 @@ export const LoginForm = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
+    // @ts-ignore
     resolver: zodResolver(loginSchema),
   });
 

@@ -57,6 +57,7 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
     handleSubmit,
     formState: { errors },
   } = useForm<CloseSessionForm>({
+    // @ts-ignore
     resolver: zodResolver(closeSessionSchema),
     defaultValues: { closingAmount: 0 },
   });

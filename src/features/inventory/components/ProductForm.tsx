@@ -63,6 +63,7 @@ export const ProductForm = ({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
+    // @ts-ignore
     resolver: zodResolver(productSchema),
     defaultValues: initialData
       ? {

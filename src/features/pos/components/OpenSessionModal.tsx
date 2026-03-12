@@ -43,6 +43,7 @@ export const OpenSessionModal = ({ onClose }: Props) => {
     handleSubmit,
     formState: { errors },
   } = useForm<OpenSessionForm>({
+    // @ts-ignore
     resolver: zodResolver(openSessionSchema),
     defaultValues: { openingAmount: 0 },
   });

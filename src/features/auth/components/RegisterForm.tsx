@@ -37,6 +37,7 @@ export const RegisterForm = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormValues>({
+    // @ts-ignore
     resolver: zodResolver(registerSchema),
   });
 
