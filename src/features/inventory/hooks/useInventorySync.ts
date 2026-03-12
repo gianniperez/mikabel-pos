@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db as firestore } from "@/lib/firebase";
-import { db as dexie } from "@/lib/dexie";
+import { db as dexie, type LocalProduct, type LocalCategory } from "@/lib/dexie";
 import { toast } from "sonner";
 
 export const useInventorySync = (enabled: boolean) => {
@@ -26,7 +26,7 @@ export const useInventorySync = (enabled: boolean) => {
             const categoryData = {
               id: change.doc.id,
               ...change.doc.data(),
-            } as { id: string; name: string };
+            } as any;
 
             if (change.type === "added" || change.type === "modified") {
               await dexie.categories.put(categoryData);
@@ -55,7 +55,7 @@ export const useInventorySync = (enabled: boolean) => {
             const productData = {
               id: change.doc.id,
               ...change.doc.data(),
-            } as { id: string; name: string; brand?: string; code: string; stock: number };
+            } as any;
 
             if (change.type === "added" || change.type === "modified") {
               await dexie.products.put(productData);
