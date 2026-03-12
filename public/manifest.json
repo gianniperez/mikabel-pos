@@ -1,21 +1,32 @@
 {
   "name": "Mikabel POS",
-  "short_name": "Mikabel POS",
-  "description": "Sistema de Punto de Venta y Gestión de Inventario",
+  "short_name": "Mikabel",
+  "description": "Sistema de Punto de Venta y Gestión de Inventario para Mikabel",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3543A2",
+  "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

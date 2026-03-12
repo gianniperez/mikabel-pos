@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Mikabel",
   },
+  icons: {
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
