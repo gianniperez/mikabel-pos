@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
-import { Button } from "@/components/Button/Button";
+import { Modal } from "@/components/ui/dialog/Modal";
+import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { toast } from "sonner";
 import { createCustomer, editCustomer } from "../api/debtsDb";

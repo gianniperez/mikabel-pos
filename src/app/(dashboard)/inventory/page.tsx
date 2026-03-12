@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Package, RefreshCw } from "lucide-react";
 import { InventoryTable, ProductForm } from "@/features/inventory/components";
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
+import { Modal } from "@/components/ui/dialog/Modal";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/dexie";
 import { toast } from "sonner";

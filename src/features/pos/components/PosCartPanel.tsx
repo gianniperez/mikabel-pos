@@ -12,7 +12,7 @@ import {
   Tag,
   Scale,
 } from "lucide-react";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { CheckoutModal } from "./CheckoutModal";
 import { WeightInputModal } from "./WeightInputModal";
 import { useSettingsStore } from "@/features/admin/stores/useSettingsStore";

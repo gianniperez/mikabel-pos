@@ -1,7 +1,7 @@
 "use client";
 
 import { useSettingsStore } from "@/features/admin/stores/useSettingsStore";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { toast } from "sonner";
 import {

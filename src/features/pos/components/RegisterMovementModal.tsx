@@ -17,8 +17,8 @@ import {
 import { db } from "@/lib/firebase";
 import { DollarSign, Text } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/Button/Button";
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
+import { Button } from "@/components/Button";
+import { Modal } from "@/components/ui/dialog/Modal";
 import { Input } from "@/components/Input";
 
 const expenseSchema = z.object({

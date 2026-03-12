@@ -1,9 +1,9 @@
 "use client";
 
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
+import { Modal } from "@/components/ui/dialog/Modal";
 import { useSessionTickets } from "../hooks/useSessionTickets";
 import { useCancelSale } from "../hooks/useCancelSale";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { useAuthStore } from "@/features/auth/stores";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

@@ -2,7 +2,7 @@
 
 import { ShoppingCart, Plus } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { CashSessionWidget } from "../CashSessionWidget";
 import { InventoryWidget } from "../InventoryWidget";
 import { CustomersWidget } from "../CustomersWidget";

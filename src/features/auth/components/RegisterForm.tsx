@@ -11,7 +11,7 @@ import { auth, db } from "@/lib/firebase";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { User, Mail, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 
 const registerSchema = z

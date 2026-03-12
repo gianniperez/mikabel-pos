@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
-import { Button } from "@/components/Button/Button";
+import { Modal } from "@/components/ui/dialog/Modal";
+import { Button } from "@/components/Button";
 import { usePosStore, type PaymentMethod } from "../stores/usePosStore";
 import { useCashSessionStore } from "../stores/useCashSessionStore";
 import { Banknote, CreditCard, BookUser } from "lucide-react";

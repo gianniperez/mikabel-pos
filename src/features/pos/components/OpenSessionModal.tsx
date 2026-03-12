@@ -16,8 +16,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { DollarSign } from "lucide-react";
-import { Button } from "@/components/Button/Button";
-import { Modal } from "@/components/ui/dialog/Modal/Modal";
+import { Button } from "@/components/Button";
+import { Modal } from "@/components/ui/dialog/Modal";
 import { Input } from "@/components/Input";
 
 const openSessionSchema = z.object({

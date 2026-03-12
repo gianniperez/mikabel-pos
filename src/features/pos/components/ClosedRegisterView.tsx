@@ -3,7 +3,7 @@
 import { Lock } from "lucide-react";
 import { useState } from "react";
 import { OpenSessionModal } from "./OpenSessionModal";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 
 export const ClosedRegisterView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

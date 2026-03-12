@@ -8,7 +8,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Mail } from "lucide-react";
 

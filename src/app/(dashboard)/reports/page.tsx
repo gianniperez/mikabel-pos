@@ -8,7 +8,7 @@ import { InventoryMetrics } from "@/features/reports/components/InventoryMetrics
 import { BarChart, Clock, PackageSearch, AlertTriangle } from "lucide-react";
 import { clsx } from "clsx";
 import Link from "next/link";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";

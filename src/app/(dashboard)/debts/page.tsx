@@ -13,7 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DebtsListPanel } from "@/features/debts/components/DebtsListPanel";
 import { AddCustomerModal } from "@/features/debts/components/AddCustomerModal";
 import { SearchBar } from "@/components/SearchBar";
-import { Button } from "@/components/Button/Button";
+import { Button } from "@/components/Button";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuthStore } from "@/features/auth/stores";
 
