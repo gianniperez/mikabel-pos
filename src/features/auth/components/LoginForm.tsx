@@ -8,6 +8,7 @@ import * as z from "zod";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -61,11 +62,26 @@ export const LoginForm = () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast.success(`Bienvenido/a`);
-    } catch (error: unknown) {
-      console.error(error);
-      toast.error("Error al iniciar con Google");
+      // En modo PWA (standalone), los popups suelen ser bloqueados o problemáticos
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone;
+
+      if (isStandalone) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+        toast.success(`Bienvenido/a`);
+      }
+    } catch (error: any) {
+      console.error("Error en Google Login:", error);
+      if (error.code === "auth/unauthorized-domain") {
+        toast.error(
+          "Error: Dominio no autorizado. Verifica la consola de Firebase.",
+        );
+      } else {
+        toast.error("Error al iniciar con Google");
+      }
       setIsLoading(false);
     }
   };
