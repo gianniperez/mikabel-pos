@@ -4,7 +4,13 @@ import { PosTabSwitcher } from "./PosTabSwitcher";
 
 describe("PosTabSwitcher Component", () => {
   it("renders correctly", () => {
-    const { container } = render(<PosTabSwitcher />);
+    const { container } = render(
+      <PosTabSwitcher
+        activeTab="products"
+        onTabChange={() => {}}
+        itemCount={0}
+      />,
+    );
     expect(container).toBeInTheDocument();
   });
 });
