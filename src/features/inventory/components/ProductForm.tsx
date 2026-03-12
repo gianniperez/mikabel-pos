@@ -326,13 +326,14 @@ export const ProductForm = ({
               ? (watch("stock") || 0) * 1000
               : watch("stock") || 0
           }
-          onChange={(e) => {
-            const val = parseFloat(e.target.value) || 0;
-            setValue("stock", stockInputMode === "grams" ? val / 1000 : val, {
-              shouldValidate: true,
-            });
-          }}
-          {...register("stock")}
+          {...register("stock", {
+            onChange: (e: any) => {
+              const val = parseFloat(e.target.value) || 0;
+              setValue("stock", stockInputMode === "grams" ? val / 1000 : val, {
+                shouldValidate: true,
+              });
+            },
+          })}
           iconPosition="right"
           icon={
             isWeightBased
@@ -381,7 +382,21 @@ export const ProductForm = ({
           icon={
             isWeightBased ? (stockInputMode === "grams" ? "g" : "Kg") : "Un"
           }
-          {...register("minStock")}
+          value={
+            isWeightBased && stockInputMode === "grams"
+              ? (watch("minStock") || 0) * 1000
+              : watch("minStock") || 0
+          }
+          {...register("minStock", {
+            onChange: (e: any) => {
+              const val = parseFloat(e.target.value) || 0;
+              setValue(
+                "minStock",
+                isWeightBased && stockInputMode === "grams" ? val / 1000 : val,
+                { shouldValidate: true },
+              );
+            },
+          })}
         />
       </div>
 
