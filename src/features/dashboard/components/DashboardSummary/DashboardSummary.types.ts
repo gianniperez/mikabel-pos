@@ -1,3 +1,1 @@
-export type DashboardSummaryProps = {
-  // props
-};
+export type DashboardSummaryProps = Record<string, unknown>;

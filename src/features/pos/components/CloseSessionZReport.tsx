@@ -33,7 +33,15 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
 
-  const [ticketData, setTicketData] = useState<any>(null); // Guardar info para impresión
+  const [ticketData, setTicketData] = useState<{
+    employeeId: string;
+    openingAmount: number;
+    totalMovements: number;
+    closingAmount: number;
+    systemCalculated: number;
+    difference: number;
+    dateStr: string;
+  } | null>(null); // Guardar info para impresión
 
   const handlePrint = useReactToPrint({
     contentRef: ticketRef,

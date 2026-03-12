@@ -30,8 +30,6 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   const {
@@ -65,8 +63,9 @@ export const RegisterForm = () => {
 
       toast.success("¡Empleado registrado exitosamente!");
       router.push("/");
-    } catch (error: any) {
-      if (error.code === "auth/email-already-in-use") {
+    } catch (error: unknown) {
+      const fbError = error as { code: string };
+      if (fbError.code === "auth/email-already-in-use") {
         toast.error("Este correo ya está registrado.");
       } else {
         toast.error("Error al registrar la cuenta.");

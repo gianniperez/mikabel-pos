@@ -1,3 +1,1 @@
-export type CustomersWidgetProps = {
-  // props
-};
+export type CustomersWidgetProps = Record<string, unknown>;

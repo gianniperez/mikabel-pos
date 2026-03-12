@@ -31,7 +31,8 @@ export interface PendingTicket {
   timestamp: number;
   sessionId: string; // ID del turno en el que se vendió
   employeeId: string; // Autor de la venta
-  status: "pending" | "failed"; // Para la cola de resincronización
+  createdAt?: { toDate: () => Date }; // Para compatibilidad con Firestore en la visualización
+  status: "pending" | "failed" | "completed" | "cancelled"; // Para la cola de resincronización y visualización
   customerId?: string; // Necesario para asociar ventas por Fiado
 }
 
@@ -135,7 +136,7 @@ export const usePosStore = create<PosState>()(
             (item) => item.product.id === product.id,
           );
 
-          let newCart = [...state.cart];
+          const newCart = [...state.cart];
 
           if (existingItemIndex >= 0) {
             // El producto ya está, aumentamos su cantidad

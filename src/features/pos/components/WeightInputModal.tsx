@@ -25,7 +25,11 @@ export const WeightInputModal = ({
   // Reset the input when the modal opens with a new initial value
   useEffect(() => {
     if (isOpen) {
-      setGrams(initialGrams ? initialGrams.toString() : "");
+      const timer = setTimeout(
+        () => setGrams(initialGrams ? initialGrams.toString() : ""),
+        0,
+      );
+      return () => clearTimeout(timer);
     }
   }, [isOpen, initialGrams]);
 
@@ -81,7 +85,6 @@ export const WeightInputModal = ({
               onClick={() => {
                 setGrams(preset.toString());
               }}
-              className="py-2 px-1 text-sm font-bold bg-gray-50 hover:bg-gray-100 border border-gray-200"
             >
               {preset}g
             </Button>

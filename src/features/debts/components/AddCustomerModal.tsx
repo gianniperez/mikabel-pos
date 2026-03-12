@@ -19,23 +19,26 @@ export const AddCustomerModal = ({
   customer,
 }: AddCustomerModalProps) => {
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const queryClient = useQueryClient();
   const isEditing = !!customer;
 
   useEffect(() => {
-    if (customer) {
-      setName(customer.name);
-    } else {
-      setName("");
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        setName(customer?.name || "");
+        setPhone(customer?.phone || "");
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [customer, isOpen]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (customerName: string) => {
+    mutationFn: async ({ name, phone }: { name: string; phone: string }) => {
       if (isEditing && customer) {
-        await editCustomer(customer.id, customerName);
+        await editCustomer(customer.id, name, phone);
       } else {
-        await createCustomer(customerName);
+        await createCustomer(name, phone);
       }
     },
     onSuccess: () => {
@@ -46,6 +49,7 @@ export const AddCustomerModal = ({
       );
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       setName("");
+      setPhone("");
       onClose();
     },
     onError: (error) => {
@@ -73,8 +77,8 @@ export const AddCustomerModal = ({
       toast.error("Ya existe un cliente con ese nombre");
       return;
     }
-
-    mutate(trimmedName);
+    
+    mutate({ name: trimmedName, phone: phone.trim() });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -106,6 +110,15 @@ export const AddCustomerModal = ({
           autoFocus
           disabled={isPending}
           required={true}
+        />
+
+        <Input
+          label="Teléfono (Opcional)"
+          placeholder="Ej: 11 1234 5678"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isPending}
         />
 
         <div className="flex justify-end gap-2 pt-2">

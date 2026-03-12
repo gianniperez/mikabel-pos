@@ -9,7 +9,7 @@ import {
 import { Customer, Debt } from "@/features/debts/types/debt";
 import { useCashSessionStore } from "@/features/pos/stores/useCashSessionStore";
 import { useAuthStore } from "@/features/auth/stores";
-import { X, Receipt, AlertTriangle } from "lucide-react";
+import { X, Receipt, AlertTriangle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
@@ -39,13 +39,7 @@ export const DebtsListPanel = ({ customer, onClose }: Props) => {
       if (!isOpen || !activeSession)
         throw new Error("La caja debe estar abierta");
 
-      await registerDebtPayment(
-        debt.id,
-        customer.id,
-        amount,
-        activeSession.id,
-        user.uid,
-      );
+      await registerDebtPayment(debt.id, customer.id, amount, activeSession.id);
     },
     onSuccess: () => {
       toast.success("Pago registrado correctamente");
@@ -54,8 +48,10 @@ export const DebtsListPanel = ({ customer, onClose }: Props) => {
       queryClient.invalidateQueries({ queryKey: ["debts", customer.id] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Error al procesar el pago");
+    onError: (err: unknown) => {
+      const message =
+        err instanceof Error ? err.message : "Error al procesar el pago";
+      toast.error(message);
     },
   });
 
@@ -85,12 +81,19 @@ export const DebtsListPanel = ({ customer, onClose }: Props) => {
       <div className="fixed inset-y-0 right-0 w-full sm:max-w-[450px] bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-200 border-l border-gray-200">
         {/* Header Fijo */}
         <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between pt-4 px-6">
-            <div className="flex items-center gap-2">
+          <div className="flex items-baseline justify-between pt-4 px-6">
+            <div className="flex flex-col items-start mb-8">
               <h2 className="text-2xl font-black text-gray-900">
                 {customer.name}
               </h2>
+              {customer.phone && (
+                <div className="flex items-center font-bold gap-1 text-gray-500">
+                  <Phone className="h-4 w-4" />
+                  <span>+54 9 {customer.phone}</span>
+                </div>
+              )}
             </div>
+
             <button
               onClick={onClose}
               className="cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"

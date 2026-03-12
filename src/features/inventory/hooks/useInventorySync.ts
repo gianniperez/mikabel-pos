@@ -13,7 +13,7 @@ export const useInventorySync = (enabled: boolean) => {
   useEffect(() => {
     if (!enabled) return;
 
-    setIsSyncing(true);
+    const timer = setTimeout(() => setIsSyncing(true), 0);
     console.log("Iniciando sincronización de inventario...");
 
     // 1. Suscripción a Categorías
@@ -26,7 +26,7 @@ export const useInventorySync = (enabled: boolean) => {
             const categoryData = {
               id: change.doc.id,
               ...change.doc.data(),
-            } as any;
+            } as { id: string; name: string };
 
             if (change.type === "added" || change.type === "modified") {
               await dexie.categories.put(categoryData);
@@ -55,7 +55,7 @@ export const useInventorySync = (enabled: boolean) => {
             const productData = {
               id: change.doc.id,
               ...change.doc.data(),
-            } as any;
+            } as { id: string; name: string; brand?: string; code: string; stock: number };
 
             if (change.type === "added" || change.type === "modified") {
               await dexie.products.put(productData);
@@ -78,6 +78,7 @@ export const useInventorySync = (enabled: boolean) => {
     );
 
     return () => {
+      clearTimeout(timer);
       unsubCategories();
       unsubProducts();
     };

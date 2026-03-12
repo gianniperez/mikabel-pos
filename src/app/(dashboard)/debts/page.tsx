@@ -6,7 +6,7 @@ import { getCustomers } from "@/features/debts/api/debtsDb";
 import { Customer } from "@/features/debts/types/debt";
 import { Card } from "@/components/Card";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
-import { Edit2, Trash2, UserRound, Plus } from "lucide-react";
+import { Edit2, Trash2, UserRound, Plus, Phone } from "lucide-react";
 import { deleteCustomer } from "@/features/debts/api/debtsDb";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -118,6 +118,10 @@ export default function DebtsPage() {
                     <p className="text-sm font-semibold text-gray-500">
                       {customer.totalDebt > 0 ? "Deuda Activa" : "Al día"}
                     </p>
+                    <div className="flex items-center font-bold gap-1 text-gray-500 text-sm">
+                      <Phone className="h-4 w-4" />
+                      <span>+54 9 {customer.phone}</span>
+                    </div>
                     <div className="pt-2">
                       <span
                         className={`text-2xl font-black ${customer.totalDebt > 0 ? "text-danger" : "text-success"}`}

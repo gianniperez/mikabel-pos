@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { getCashSessionsHistory } from "../api/reportsDb";
+import { useUsers } from "@/features/auth/hooks/useUsers";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -8,6 +9,8 @@ export const CashSessionsHistory = () => {
     queryKey: ["cash-sessions-history"],
     queryFn: () => getCashSessionsHistory(30),
   });
+
+  const { userMap } = useUsers();
 
   if (isLoading)
     return (
@@ -29,6 +32,7 @@ export const CashSessionsHistory = () => {
           <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-bold uppercase text-xs tracking-wider">
             <tr>
               <th className="px-6 py-4">Apertura</th>
+              <th className="px-6 py-4">Empleado</th>
               <th className="px-6 py-4">Cierre</th>
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4 text-right">Fondo Base</th>
@@ -65,6 +69,12 @@ export const CashSessionsHistory = () => {
                     </div>
                     <div className="text-gray-500 text-xs">
                       {isValidOpen ? format(openDate, "HH:mm") : "--:--"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900">
+                      {userMap[session.employeeId] ||
+                        `ID: ${session.employeeId.substring(0, 5)}...`}
                     </div>
                   </td>
                   <td className="px-6 py-4">

@@ -1,3 +1,1 @@
-export type InventoryWidgetProps = {
-  // props
-};
+export type InventoryWidgetProps = Record<string, unknown>;

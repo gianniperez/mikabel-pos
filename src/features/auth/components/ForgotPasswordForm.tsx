@@ -38,8 +38,9 @@ export const ForgotPasswordForm = () => {
       await sendPasswordResetEmail(auth, email);
       setIsSuccess(true);
       toast.success("Correo enviado exitosamente");
-    } catch (error: any) {
-      if (error.code === "auth/user-not-found") {
+    } catch (error: unknown) {
+      const fbError = error as { code: string };
+      if (fbError.code === "auth/user-not-found") {
         toast.error("No existe un usuario con este correo electrónico.");
       } else {
         toast.error("Ocurrió un error al intentar enviar el correo.");

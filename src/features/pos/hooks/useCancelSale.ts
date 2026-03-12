@@ -1,51 +1,57 @@
+"use client";
+
 import { useState } from "react";
 import { db } from "@/lib/firebase";
-import { doc, writeBatch, increment, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { 
+  doc, 
+  writeBatch, 
+  increment, 
+  getDoc 
+} from "firebase/firestore";
 import { toast } from "sonner";
-import { useAuthStore } from "@/features/auth/stores/useAuthStore";
+import { useAuthStore } from "@/features/auth/stores";
 
 export const useCancelSale = () => {
   const [isCancelling, setIsCancelling] = useState(false);
-  const { dbUser, firebaseUser } = useAuthStore();
+  const { dbUser } = useAuthStore();
+  const isAdmin = dbUser?.role === "admin";
 
-  const cancelSale = async (ticketId: string) => {
-    // 1. Verificación de permisos ruda
-    if (dbUser?.role !== "admin") {
-      toast.error("Solo los Administradores pueden anular comprobantes.");
+  const cancelSale = async (saleId: string) => {
+    if (!isAdmin) {
+      toast.error("Solo administradores pueden anular ventas");
       return false;
     }
 
     setIsCancelling(true);
     try {
-      // 2. Traer el comprobante real para saber qué revertir
-      const saleRef = doc(db, "sales", ticketId);
+      const saleRef = doc(db, "sales", saleId);
       const saleSnap = await getDoc(saleRef);
 
       if (!saleSnap.exists()) {
-        toast.error("El ticket no existe o ya fue eliminado");
+        toast.error("No se encontró la venta");
         return false;
       }
 
       const saleData = saleSnap.data();
 
-      // Ya está anulado?
+      // 1. Validar que no esté ya anulada
       if (saleData.status === "cancelled") {
-        toast.info("Este ticket ya se encontraba anulado");
+        toast.error("Esta venta ya fue anulada");
         return false;
       }
 
       const batch = writeBatch(db);
 
-      // 3. Marcar el Ticket como Anulado (Mantenemos registro contable)
+      // 2. Marcar Venta como Anulada
       batch.update(saleRef, {
         status: "cancelled",
         cancelledAt: new Date(),
-        cancelledBy: firebaseUser?.uid || "admin_unknown",
+        cancelledBy: dbUser?.uid
       });
 
-      // 4. Devolver stock de los Items vendidos al Inventario
-      if (Array.isArray(saleData.items)) {
-        saleData.items.forEach((item: any) => {
+      // 3. Devolver Stock
+      if (saleData.items && Array.isArray(saleData.items)) {
+        saleData.items.forEach((item: { product: { id: string }; quantity: number }) => {
           const productRef = doc(db, "products", item.product.id);
           batch.update(productRef, {
             // El item guardaba quantity. Era una venta, así que restó.
@@ -59,7 +65,7 @@ export const useCancelSale = () => {
       // Como un Admin puede anular tickets viejos, hay que restar de la sesión histórica exacta.
       if (saleData.sessionId) {
          const sessionRef = doc(db, "cash_sessions", saleData.sessionId);
-         const sessionUpdateData: any = {
+         const sessionUpdateData: Record<string, unknown> = {
            totalMovements: increment(-1) // Restamos un movimiento porque la venta se deshizo
          };
 
@@ -68,49 +74,33 @@ export const useCancelSale = () => {
            sessionUpdateData.totalCashSales = increment(-saleData.total);
          } else if (saleData.paymentMethod === "transfer") {
            sessionUpdateData.totalTransferSales = increment(-saleData.total);
-         } else if (saleData.paymentMethod === "debt") {
-           sessionUpdateData.totalDebtSales = increment(-saleData.total);
+         } else if (saleData.paymentMethod === "split") {
+            if (saleData.splitPayments?.cash) {
+                sessionUpdateData.totalCashSales = increment(-saleData.splitPayments.cash);
+            }
+            if (saleData.splitPayments?.transfer) {
+                sessionUpdateData.totalTransferSales = increment(-saleData.splitPayments.transfer);
+            }
          }
 
-         batch.update(sessionRef, sessionUpdateData);
+         batch.set(sessionRef, sessionUpdateData, { merge: true });
       }
 
-      // 6. Eliminar la deuda si la venta fue fiada
+      // 6. Si era una venta a DEUDA (fiado), restar de la deuda del cliente
       if (saleData.paymentMethod === "debt" && saleData.customerId) {
-        const debtsQuery = query(
-          collection(db, "debts"),
-          where("saleId", "==", ticketId)
-        );
-        const debtsSnap = await getDocs(debtsQuery);
-        
-        let totalDebtToSubtract = 0;
-        debtsSnap.docs.forEach((debtDoc) => {
-          const debtData = debtDoc.data();
-          // Restar de la master account del cliente solo lo que NO había pagado aún
-          const remainingDebt = (debtData.amount || 0) - (debtData.paidAmount || 0);
-          totalDebtToSubtract += remainingDebt;
-          
-          // Eliminar el documento de deuda
-          batch.delete(debtDoc.ref);
+        const customerRef = doc(db, "customers", saleData.customerId);
+        batch.update(customerRef, {
+          balance: increment(-saleData.total),
+          updatedAt: new Date()
         });
-
-        if (totalDebtToSubtract > 0) {
-          const customerRef = doc(db, "customers", saleData.customerId);
-          batch.update(customerRef, {
-            totalDebt: increment(-totalDebtToSubtract)
-          });
-        }
       }
 
-      // 7. Ejecutar el Batch Reversivo
       await batch.commit();
-      
-      toast.success(`Venta ${ticketId.substring(0,8)} anulada con éxito`);
+      toast.success("Venta anulada correctamente. Stock y caja actualizados.");
       return true;
-
     } catch (error) {
       console.error("Error al anular venta:", error);
-      toast.error("Ocurrió un error crítico al intentar anular el ticket.");
+      toast.error("Error al anular la venta");
       return false;
     } finally {
       setIsCancelling(false);

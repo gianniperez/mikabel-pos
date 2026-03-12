@@ -34,7 +34,7 @@ export const usePosSyncLoop = () => {
             });
 
             // 2. Restar Stock Atómicamente
-            ticket.items.forEach((item: any) => {
+            ticket.items.forEach((item: { product: { id: string }; quantity: number }) => {
               const productRef = doc(db, "products", item.product.id);
               batch.set(
                 productRef,
@@ -47,7 +47,7 @@ export const usePosSyncLoop = () => {
 
             // 3. Incrementar Contadores del Turno
             const sessionRef = doc(db, "cash_sessions", ticket.sessionId);
-            const updateData: any = {
+            const updateData: Record<string, unknown> = {
               totalMovements: increment(1)
             };
 

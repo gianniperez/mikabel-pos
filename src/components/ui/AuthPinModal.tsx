@@ -24,9 +24,13 @@ export const AuthPinModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setPin("");
+      const timer = setTimeout(() => setPin(""), 0);
       // Dar foco al input invisible para capturar teclado
-      setTimeout(() => inputRef.current?.focus(), 100);
+      const focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(focusTimer);
+      };
     }
   }, [isOpen]);
 

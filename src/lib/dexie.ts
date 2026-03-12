@@ -22,8 +22,8 @@ export interface LocalProduct {
   quantityUnit: "kg" | "unit" | "100gr";
   stock: number;
   minStock: number;
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Definición de la base de datos

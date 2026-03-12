@@ -8,6 +8,7 @@ import { useAuthStore } from "@/features/auth/stores";
 import { toast } from "sonner";
 import { useRouter, usePathname } from "next/navigation";
 import { useInventorySync } from "@/features/inventory/hooks";
+import { User as DbUser } from "@/types/models";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, clearAuth, loading, firebaseUser, dbUser } = useAuthStore();
@@ -18,7 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sincronización automática de inventario (Firestore -> IndexedDB)
   useInventorySync(!!dbUser);
   useEffect(() => {
-    setMounted(true);
+    // Usamos setTimeout para evitar el warning de cascading renders
+    const timer = setTimeout(() => setMounted(true), 0);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -42,7 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuth(user, {
               ...data,
               photoURL: user.photoURL || data.photoURL,
-            } as any);
+              createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+            } as DbUser);
           } else {
             // Documento no existe, lo creamos automáticamente
             newUserData = {
@@ -58,17 +61,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: new Date(),
             };
             await setDoc(userRef, newUserData);
-            setAuth(user, newUserData as any);
+            setAuth(user, newUserData as DbUser);
           }
 
           const dbUserData = userSnap.exists()
-            ? (userSnap.data() as any)
+            ? (userSnap.data() as DbUser)
             : newUserData;
 
           // Si ya está logueado y trata de entrar a rutas de auth, lo mandamos al index
           if (pathname === "/login" || pathname === "/forgot-password") {
             router.replace("/");
-          } else if (pathname === "/register" && dbUserData.role !== "admin") {
+          } else if (pathname === "/register" && dbUserData?.role !== "admin") {
             // Empleados regulares o usuarios nuevos no pueden entrar al register
             toast.error("No tienes permisos para registrar usuarios.");
             router.replace("/");
@@ -91,7 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [setAuth, clearAuth, pathname, router]);
 
   const isPublicRoute = ["/login", "/register", "/forgot-password"].includes(

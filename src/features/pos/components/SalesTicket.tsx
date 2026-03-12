@@ -116,18 +116,6 @@ export const SalesTicket = React.forwardRef<HTMLDivElement, SalesTicketProps>(
                     .toFixed(2)}
                 </span>
               </div>
-              {total > items.reduce((acc, item) => acc + item.subtotal, 0) && (
-                <div className="flex justify-between text-[10px]">
-                  <span>Recargo:</span>
-                  <span>
-                    +$
-                    {(
-                      total -
-                      items.reduce((acc, item) => acc + item.subtotal, 0)
-                    ).toFixed(2)}
-                  </span>
-                </div>
-              )}
             </div>
             <div className="flex justify-between font-black text-lg">
               <span>TOTAL:</span>

@@ -26,7 +26,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -36,7 +35,7 @@ export const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleAuthSuccess = async (user: any) => {
+  const handleAuthSuccess = async () => {
     toast.success(`Bienvenido/a`);
   };
 
@@ -48,8 +47,8 @@ export const LoginForm = () => {
         data.email,
         data.password,
       );
-      await handleAuthSuccess(res.user);
-    } catch (error: any) {
+      await handleAuthSuccess();
+    } catch (error: unknown) {
       toast.error(
         "Error al iniciar sesión: Credenciales incorrectas o el usuario no existe",
       );
@@ -63,7 +62,7 @@ export const LoginForm = () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       toast.success(`Bienvenido/a`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("Error al iniciar con Google");
       setIsLoading(false);

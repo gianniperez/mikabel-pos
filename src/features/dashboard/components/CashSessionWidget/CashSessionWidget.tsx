@@ -1,11 +1,7 @@
-"use client";
-
-import type { CashSessionWidgetProps } from "./CashSessionWidget.types";
-import { useCashSessionStore } from "@/features/pos/stores/useCashSessionStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useCashSessionStore } from "@/features/pos/stores/useCashSessionStore";
 import { Wallet, Clock } from "lucide-react";
-
 import Link from "next/link";
 
 export const CashSessionWidget = () => {
@@ -30,9 +26,9 @@ export const CashSessionWidget = () => {
     );
   }
 
-  const openDate = (activeSession.openedAt as any)?.toDate
-    ? (activeSession.openedAt as any).toDate()
-    : new Date(activeSession.openedAt);
+  const openDate = (activeSession.openedAt as { toDate?: () => Date })?.toDate
+    ? (activeSession.openedAt as { toDate?: () => Date }).toDate!()
+    : new Date(activeSession.openedAt as string | number | Date);
 
   return (
     <Link
@@ -71,8 +67,8 @@ export const CashSessionWidget = () => {
             </span>
             <span className="text-4xl font-black text-gray-900">
               $
-              {((activeSession as any).totalCashSales || 0) +
-                ((activeSession as any).totalTransferSales || 0)}
+              {((activeSession as unknown as Record<string, number>).totalCashSales || 0) +
+                ((activeSession as unknown as Record<string, number>).totalTransferSales || 0)}
             </span>
           </div>
         </div>

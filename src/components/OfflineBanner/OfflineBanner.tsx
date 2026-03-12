@@ -9,7 +9,7 @@ export const OfflineBanner = () => {
   useEffect(() => {
     // Definir estado inicial (Cuidado: navigator puede no existir en SSR)
     if (typeof window !== "undefined") {
-      setIsOffline(!navigator.onLine);
+      const timer = setTimeout(() => setIsOffline(!navigator.onLine), 0);
 
       const handleOnline = () => setIsOffline(false);
       const handleOffline = () => setIsOffline(true);
@@ -18,6 +18,7 @@ export const OfflineBanner = () => {
       window.addEventListener("offline", handleOffline);
 
       return () => {
+        clearTimeout(timer);
         window.removeEventListener("online", handleOnline);
         window.removeEventListener("offline", handleOffline);
       };

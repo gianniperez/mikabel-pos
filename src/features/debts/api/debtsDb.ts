@@ -26,16 +26,20 @@ export const getCustomers = async (): Promise<Customer[]> => {
   })) as Customer[];
 };
 
-export const createCustomer = async (name: string): Promise<Customer> => {
+export const createCustomer = async (
+  name: string,
+  phone?: string,
+): Promise<Customer> => {
   const customerData = {
     name,
+    phone: phone || null,
     totalDebt: 0,
   };
   const docRef = await addDoc(collection(db, "customers"), customerData);
   return {
     id: docRef.id,
     ...customerData,
-  };
+  } as Customer;
 };
 
 export const getCustomerById = async (id: string): Promise<Customer | null> => {
@@ -47,9 +51,16 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
   return null;
 };
 
-export const editCustomer = async (id: string, newName: string): Promise<void> => {
+export const editCustomer = async (
+  id: string,
+  newName: string,
+  newPhone?: string,
+): Promise<void> => {
   const docRef = doc(db, "customers", id);
-  await updateDoc(docRef, { name: newName });
+  await updateDoc(docRef, {
+    name: newName,
+    phone: newPhone || null,
+  });
 };
 
 export const deleteCustomer = async (id: string): Promise<void> => {
@@ -88,7 +99,6 @@ export const registerDebtPayment = async (
   customerId: string,
   amountToPay: number,
   sessionId: string,
-  employeeId: string,
 ): Promise<void> => {
   const batch = writeBatch(db);
 

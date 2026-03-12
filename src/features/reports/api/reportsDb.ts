@@ -67,7 +67,7 @@ export const getTopSellingProducts = async (
 
       const items = data.items || [];
 
-      items.forEach((item: any) => {
+      items.forEach((item: { product: { id: string; name: string; brand?: string }; quantity: number }) => {
         const productId = item.product.id;
         const productName = item.product.name;
         const productBrand = item.product.brand;

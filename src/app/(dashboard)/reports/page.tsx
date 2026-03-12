@@ -12,7 +12,6 @@ import { Button } from "@/components/Button/Button";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
-import { Input } from "@/components/Input";
 
 type TabMenu = "financial" | "history" | "inventory";
 
@@ -80,7 +79,7 @@ export default function ReportsPage() {
 
           <Button
             onClick={() => setActiveTab("history")}
-            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all border-2"
+            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all"
             variant={activeTab === "history" ? "primary" : "outline"}
           >
             <Clock className="h-5 w-5" />
@@ -89,7 +88,7 @@ export default function ReportsPage() {
 
           <Button
             onClick={() => setActiveTab("inventory")}
-            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all border-2"
+            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all"
             variant={activeTab === "inventory" ? "primary" : "outline"}
           >
             <PackageSearch className="h-5 w-5" />
@@ -109,7 +108,11 @@ export default function ReportsPage() {
           ].map((period) => (
             <Button
               key={period.id}
-              onClick={() => setReportPeriod(period.id as any)}
+              onClick={() =>
+                setReportPeriod(
+                  period.id as "7d" | "30d" | "thisMonth" | "lastMonth",
+                )
+              }
               variant={reportPeriod === period.id ? "secondary" : "outline"}
               rounded="full"
               className="text-[10px] sm:text-sm py-2 px-1 sm:px-4 w-full sm:w-auto gap-1 sm:gap-2 transition-all"

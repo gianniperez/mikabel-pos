@@ -6,8 +6,6 @@ import { useCashSessionStore } from "../stores/useCashSessionStore";
 import { Banknote, CreditCard, BookUser } from "lucide-react";
 import { clsx } from "clsx";
 import { toast } from "sonner";
-import { db } from "@/lib/firebase";
-import { writeBatch, doc, collection, increment } from "firebase/firestore";
 import { useRef, useState as useReactState, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
 import { SalesTicket } from "./SalesTicket";
@@ -59,7 +57,7 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   const componentRef = useRef<HTMLDivElement>(null);
 
   // Guardamos una "foto" del ticket para imprimir, así podemos vaciar el carrito inmediatamente
-  const [frozenTicket, setFrozenTicket] = useReactState<any>(null);
+  const [frozenTicket, setFrozenTicket] = useReactState<(import("../stores/usePosStore").PendingTicket & { cashAmount?: number }) | null>(null);
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -339,7 +337,7 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               onChange={(e) => setSelectedCustomerId(e.target.value)}
               options={[
                 { value: "", label: "-- Selecciona un Cliente --" },
-                ...customers.map((c: any) => ({
+                ...customers.map((c: { id: string; name: string; totalDebt: number }) => ({
                   value: c.id,
                   label: `${c.name} (Deuda: $${c.totalDebt})`,
                 })),

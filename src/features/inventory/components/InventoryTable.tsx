@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,7 +12,7 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type LocalProduct } from "@/lib/dexie";
 import { db as dbFirestore } from "@/lib/firebase";
-import { doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useAuthStore } from "@/features/auth/stores";
 import { toast } from "sonner";
 import { Edit2, Package, AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
@@ -35,35 +35,40 @@ export const InventoryTable = ({
   const products = useLiveQuery(() => db.products.toArray()) || [];
   const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
-  const handleStockChange = async (
-    productId: string,
-    currentStock: number,
-    delta: number,
-  ) => {
-    if (!isAdmin) return;
-    try {
-      const newStock = Math.max(0, Number((currentStock + delta).toFixed(3)));
-      const productRef = doc(dbFirestore, "products", productId);
-      await updateDoc(productRef, {
-        stock: newStock,
-        updatedAt: new Date(),
-      });
-      toast.success("Stock actualizado");
-    } catch (error: any) {
-      console.error("Error actualizando stock:", error);
-      if (error.code === "not-found" || error.message?.includes("not found")) {
-        toast.error(
-          "El producto ya no existe en el servidor. Actualizando lista...",
-        );
-        await db.products.delete(productId);
-      } else {
-        toast.error("Error al actualizar stock");
+  const handleStockChange = useCallback(
+    async (productId: string, currentStock: number, delta: number) => {
+      if (!isAdmin) return;
+      try {
+        const newStock = Math.max(0, Number((currentStock + delta).toFixed(3)));
+        const productRef = doc(dbFirestore, "products", productId);
+        await updateDoc(productRef, {
+          stock: newStock,
+          updatedAt: new Date(),
+        });
+        toast.success("Stock actualizado");
+      } catch (error) {
+        console.error("Error actualizando stock:", error);
+        const fbError = error as { code?: string; message?: string };
+        if (
+          fbError.code === "not-found" ||
+          fbError.message?.includes("not found")
+        ) {
+          toast.error(
+            "El producto ya no existe en el servidor. Actualizando lista...",
+          );
+          await db.products.delete(productId);
+        } else {
+          toast.error("Error al actualizar stock");
+        }
       }
-    }
-  };
+    },
+    [isAdmin],
+  );
 
   const categoryMap = useMemo(() => {
-    return new Map(categories.map((c: any) => [c.id, c.name]));
+    return new Map(
+      categories.map((c: { id: string; name: string }) => [c.id, c.name]),
+    );
   }, [categories]);
 
   const handleDelete = async (productId: string, productName: string) => {
@@ -110,13 +115,27 @@ export const InventoryTable = ({
             </div>
           ),
         }),
-        columnHelper.accessor("salePrice", {
-          header: "Precio",
+        columnHelper.accessor("costPrice", {
+          id: "costPrice",
+          header: "Costo",
           cell: (info) => (
-            <PriceCell
+            <EditablePriceCell
               productId={info.row.original.id}
               initialPrice={info.getValue()}
               isAdmin={isAdmin}
+              field="costPrice"
+            />
+          ),
+        }),
+        columnHelper.accessor("salePrice", {
+          id: "salePrice",
+          header: "Venta",
+          cell: (info) => (
+            <EditablePriceCell
+              productId={info.row.original.id}
+              initialPrice={info.getValue()}
+              isAdmin={isAdmin}
+              field="salePrice"
             />
           ),
         }),
@@ -202,8 +221,11 @@ export const InventoryTable = ({
             </div>
           ),
         }),
-      ].filter((col) => isAdmin || col.id !== "actions"),
-    [categoryMap, onEdit, isAdmin],
+      ].filter(
+        (col: any) =>
+          isAdmin || (col.id !== "actions" && col.id !== "costPrice"),
+      ),
+    [categoryMap, onEdit, isAdmin, handleStockChange],
   );
 
   const table = useReactTable({
@@ -427,14 +449,16 @@ export const InventoryTable = ({
 
 // --- Componentes Auxiliares ---
 
-const PriceCell = ({
+const EditablePriceCell = ({
   productId,
   initialPrice,
   isAdmin,
+  field = "salePrice",
 }: {
   productId: string;
   initialPrice: number;
   isAdmin: boolean;
+  field?: "salePrice" | "costPrice";
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState((initialPrice || 0).toString());
@@ -455,15 +479,21 @@ const PriceCell = ({
     try {
       const productRef = doc(dbFirestore, "products", productId);
       await updateDoc(productRef, {
-        salePrice: newPrice,
+        [field]: newPrice,
         updatedAt: new Date(),
       });
-      toast.success("Precio actualizado");
+      toast.success(
+        field === "salePrice" ? "Precio actualizado" : "Costo actualizado",
+      );
       setIsEditing(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error actualizando precio:", error);
+      const fbError = error as { code?: string; message?: string };
 
-      if (error.code === "not-found" || error.message?.includes("not found")) {
+      if (
+        fbError.code === "not-found" ||
+        fbError.message?.includes("not found")
+      ) {
         toast.error("El producto ya no existe. Actualizando...");
         await db.products.delete(productId);
       } else {
@@ -509,7 +539,11 @@ const PriceCell = ({
     <button
       onClick={() => setIsEditing(true)}
       className="group flex items-center gap-2 font-bold text-gray-900 hover:text-primary transition-colors cursor-pointer"
-      title="Click para editar precio"
+      title={
+        field === "salePrice"
+          ? "Click para editar precio"
+          : "Click para editar costo"
+      }
     >
       <span>${(initialPrice || 0).toLocaleString()}</span>
       <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />

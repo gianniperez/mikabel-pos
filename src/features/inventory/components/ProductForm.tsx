@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-// @ts-ignore - Lint false positive in this environment
-import { useForm, useWatch } from "react-hook-form";
+// @ts-expect-error Typescript ESM resolution issue con RHF v7
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";

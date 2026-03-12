@@ -14,20 +14,30 @@ interface EditCustomerModalProps {
   customer: Customer | null;
 }
 
-export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerModalProps) => {
+export const EditCustomerModal = ({
+  isOpen,
+  onClose,
+  customer,
+}: EditCustomerModalProps) => {
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (customer && isOpen) {
-      setName(customer.name);
-      setIsDeleting(false);
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        setName(customer?.name || "");
+        setPhone(customer?.phone || "");
+        setIsDeleting(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [customer, isOpen]);
 
   const editMutation = useMutation({
-    mutationFn: (newName: string) => editCustomer(customer!.id, newName),
+    mutationFn: ({ name, phone }: { name: string; phone: string }) =>
+      editCustomer(customer!.id, name, phone),
     onSuccess: () => {
       toast.success("Cliente actualizado");
       queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -60,9 +70,12 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
     }
 
     // Duplicate check
-    const existingCustomers = queryClient.getQueryData<Customer[]>(["customers"]) || [];
+    const existingCustomers =
+      queryClient.getQueryData<Customer[]>(["customers"]) || [];
     const exists = existingCustomers.some(
-      (c) => c.id !== customer?.id && c.name.toLowerCase() === trimmedName.toLowerCase()
+      (c) =>
+        c.id !== customer?.id &&
+        c.name.toLowerCase() === trimmedName.toLowerCase(),
     );
 
     if (exists) {
@@ -70,12 +83,14 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
       return;
     }
 
-    editMutation.mutate(trimmedName);
+    editMutation.mutate({ name: trimmedName, phone: phone.trim() });
   };
 
   const handleDelete = () => {
     if (customer?.totalDebt && customer.totalDebt > 0) {
-      toast.error("No puedes eliminar un cliente con deuda activa. Debe saldarla primero.");
+      toast.error(
+        "No puedes eliminar un cliente con deuda activa. Debe saldarla primero.",
+      );
       setIsDeleting(false);
       return;
     }
@@ -94,10 +109,12 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
   return (
     <Modal
       isOpen={isOpen}
-      onClose={() => !editMutation.isPending && !deleteMutation.isPending && onClose()}
+      onClose={() =>
+        !editMutation.isPending && !deleteMutation.isPending && onClose()
+      }
       title={isDeleting ? "Eliminar Cliente" : "Editar Cliente"}
       description={
-        isDeleting 
+        isDeleting
           ? `¿Estás seguro de que deseas eliminar permanentemente a ${customer.name}?`
           : "Modifica el nombre o apodo del cliente."
       }
@@ -115,6 +132,14 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
               disabled={editMutation.isPending}
             />
 
+            <Input
+              label="Teléfono"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={editMutation.isPending}
+            />
+
             <div className="flex justify-between items-center pt-2">
               <button
                 type="button"
@@ -124,15 +149,23 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
               >
                 <Trash2 className="w-5 h-5" />
               </button>
-              
+
               <div className="flex gap-2">
-                <Button variant="secondary" onClick={onClose} disabled={editMutation.isPending}>
+                <Button
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={editMutation.isPending}
+                >
                   Cancelar
                 </Button>
                 <Button
                   variant="primary"
                   onClick={handleEdit}
-                  disabled={!name.trim() || name === customer.name || editMutation.isPending}
+                  disabled={
+                    !name.trim() ||
+                    (name === customer.name && phone === customer.phone) ||
+                    editMutation.isPending
+                  }
                 >
                   {editMutation.isPending ? "Guardando..." : "Guardar Cambios"}
                 </Button>
@@ -145,11 +178,13 @@ export const EditCustomerModal = ({ isOpen, onClose, customer }: EditCustomerMod
               <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p>
-                  <strong>¡Atención!</strong> Este cliente tiene una deuda activa de <strong>${customer.totalDebt}</strong>. No puede ser eliminado hasta que la salde.
+                  <strong>¡Atención!</strong> Este cliente tiene una deuda
+                  activa de <strong>${customer.totalDebt}</strong>. No puede ser
+                  eliminado hasta que la salde.
                 </p>
               </div>
             )}
-            
+
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 variant="secondary"

@@ -94,11 +94,6 @@ Hemos diseñado un camino para que MikabelPOS siga creciendo y le dé más contr
 
 Para que este documento sea perfecto, necesitaría confirmar algunos detalles:
 
-1. **Arqueo de Caja**: ¿Tienen alguna política sobre qué pasa si el "Faltante" supera cierto monto? (Ej: ¿Se descuenta, se revisa la cámara?).
-2. **Límite de Fiado**: ¿Existe un monto máximo que un cliente pueda deber antes de que el sistema deba avisar o bloquear nuevas ventas? (Ej: $50.000).
-3. **Anulaciones**: Cuando la cajera comete un error, ¿ustedes prefieren que ella los llame en el momento para anular, o que anote el error y ustedes lo anulen al final
-4. **Falta de Stock**: Desde el punto de venta, si un producto no tiene stock cargado, ¿debería el sistema permitir venderlo igual (dejando el stock en negativo) o debería bloquear la venta hasta que se cargue mercadería?
-5. **Precios de Costo**: ¿Les resulta útil que el precio de costo esté cargado en la app para calcular métricas de ganancia neta, o prefieren mantenerlo fuera del sistema por ahora?
-6. **Precios por Bulto**: ¿Cómo manejan habitualmente los precios por bultos (ej: maple de huevos)? ¿Necesitan una lógica simple o algo más complejo con múltiples niveles de descuento?
+1. **Límite de Fiado**: ¿Existe un monto máximo que un cliente pueda deber antes de que el sistema deba avisar o bloquear nuevas ventas? (Ej: $50.000).
 
 ---

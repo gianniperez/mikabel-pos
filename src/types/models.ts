@@ -34,7 +34,7 @@ export interface Category {
   name: string;
 }
 
-export type SaleStatus = "completed" | "refunded";
+export type SaleStatus = "completed" | "refunded" | "cancelled";
 
 export interface SurchargeConfig {
   type: "percentage" | "fixed";
@@ -101,6 +101,7 @@ export interface CashMovement {
 export interface Customer {
   id: string;
   name: string;
+  phone?: string;
   totalDebt: number;
 }
 
