@@ -34,13 +34,7 @@ export const Sidebar = () => {
     <aside className="hidden md:flex flex-col w-64 bg-background-white border-r border-gray-200 h-screen sticky top-0 overflow-y-auto z-40">
       {/* Brand */}
       <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-100 mb-4">
-        <Image
-          src="/icon.png"
-          alt="Mikabel"
-          width={32}
-          height={32}
-          className="rounded-lg shadow-sm"
-        />
+        <Image src="/isologo.png" alt="Mikabel" width={32} height={32} />
         <h1 className="text-2xl font-extrabold text-primary-dark tracking-tight">
           Mikabel<span className="text-primary">POS</span>
         </h1>

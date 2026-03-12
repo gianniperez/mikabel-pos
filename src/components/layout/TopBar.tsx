@@ -20,13 +20,7 @@ export const TopBar = () => {
     <>
       <header className="md:hidden h-14 bg-background-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30">
         <div className="flex items-center gap-2">
-          <Image
-            src="/icon.png"
-            alt="Mikabel"
-            width={24}
-            height={24}
-            className="rounded-md"
-          />
+          <Image src="/isologo.png" alt="Mikabel" width={24} height={24} />
           <h1 className="text-lg font-extrabold text-primary-dark tracking-tight">
             Mikabel<span className="text-primary">POS</span>
           </h1>
