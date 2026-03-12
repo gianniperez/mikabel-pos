@@ -23,7 +23,7 @@ export const InventoryWidget = () => {
   return (
     <Link
       href="/reports?tab=inventory"
-      className="block transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+      className="h-68block transform transition-all hover:scale-[1.02] active:scale-[0.98]"
     >
       <div className="bg-white border-2 border-primary-light/50 rounded-3xl p-6 shadow-sm relative overflow-hidden h-full cursor-pointer hover:border-primary-light">
         <div className="flex items-center gap-3 mb-6">

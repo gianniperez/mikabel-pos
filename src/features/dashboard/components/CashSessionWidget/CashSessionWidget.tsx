@@ -11,7 +11,7 @@ export const CashSessionWidget = () => {
     return (
       <Link
         href="/pos"
-        className="block transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+        className="h-68 block transform transition-all hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="bg-white border-2 border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3 h-full cursor-pointer hover:border-gray-200">
           <div className="p-4 bg-gray-50 text-gray-400 rounded-full">
@@ -67,8 +67,10 @@ export const CashSessionWidget = () => {
             </span>
             <span className="text-4xl font-black text-gray-900">
               $
-              {((activeSession as unknown as Record<string, number>).totalCashSales || 0) +
-                ((activeSession as unknown as Record<string, number>).totalTransferSales || 0)}
+              {((activeSession as unknown as Record<string, number>)
+                .totalCashSales || 0) +
+                ((activeSession as unknown as Record<string, number>)
+                  .totalTransferSales || 0)}
             </span>
           </div>
         </div>
