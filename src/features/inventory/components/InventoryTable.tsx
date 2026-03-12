@@ -221,10 +221,10 @@ export const InventoryTable = ({
             </div>
           ),
         }),
-      ].filter(
-        (col: any) =>
-          isAdmin || (col.id !== "actions" && col.id !== "costPrice"),
-      ),
+      ].filter((col) => {
+        const column = col as { id?: string };
+        return isAdmin || (column.id !== "actions" && column.id !== "costPrice");
+      }),
     [categoryMap, onEdit, isAdmin, handleStockChange],
   );
 
