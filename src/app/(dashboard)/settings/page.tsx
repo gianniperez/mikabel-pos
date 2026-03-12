@@ -4,10 +4,19 @@ import { useSettingsStore } from "@/features/admin/stores/useSettingsStore";
 import { Button } from "@/components/Button/Button";
 import { Input } from "@/components/Input";
 import { toast } from "sonner";
-import { Save, Lock, Percent, PackageOpen } from "lucide-react";
+import {
+  Save,
+  Lock,
+  Percent,
+  PackageOpen,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
+import { importProductsFromJson } from "@/features/inventory/services/importService";
+import { useRef, useState } from "react";
 
 export default function SettingsPage() {
   const { dbUser } = useAuthStore();
@@ -20,12 +29,53 @@ export default function SettingsPage() {
     setAdminPin,
   } = useSettingsStore();
 
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStats, setImportStats] = useState<{
+    processed: number;
+    total: number;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (dbUser && dbUser.role !== "admin") {
     redirect("/");
   }
 
   const handleSave = () => {
     toast.success("Configuraciones guardadas localmente.");
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      try {
+        setIsImporting(true);
+        setImportStats(null);
+        const result = await importProductsFromJson(
+          content,
+          (processed, total) => {
+            setImportStats({ processed, total });
+          },
+        );
+        toast.success(`Se importaron ${result.count} productos correctamente.`);
+      } catch (error) {
+        console.error("Error al importar:", error);
+        toast.error(
+          "Error al procesar el archivo. Asegúrate que sea un JSON válido.",
+        );
+      } finally {
+        setIsImporting(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -105,6 +155,73 @@ export default function SettingsPage() {
             <div className="p-3 bg-blue-50 rounded-xl border border-primary-light/30 text-sm text-primary">
               Sugerencia: Cambia el PIN periódicamente para mantener la
               seguridad.
+            </div>
+          </div>
+        </div>
+
+        {/* Card: Carga Masiva */}
+        <div className="bg-white p-6 rounded-2xl border-2 border-dashed border-primary-light shadow-sm space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary-light/30 rounded-lg">
+              <RefreshCw className="w-5 h-5 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">
+              Carga Masiva (Plantilla)
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">
+              Selecciona el archivo <strong>seed-template.json</strong> para
+              cargar el catálogo completo de productos.
+            </p>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".json"
+              className="hidden"
+            />
+
+            <Button
+              variant="outline"
+              className="w-full h-12 gap-2 border-primary text-primary hover:bg-primary-light/10"
+              onClick={handleImportClick}
+              disabled={isImporting}
+            >
+              {isImporting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <PackageOpen className="w-5 h-5" />
+              )}
+              {isImporting ? "Importando..." : "Subir seed-template.json"}
+            </Button>
+
+            {isImporting && importStats && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold text-primary italic">
+                  <span>Procesando productos...</span>
+                  <span>
+                    {importStats.processed} / {importStats.total}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-primary h-full transition-all duration-300"
+                    style={{
+                      width: `${(importStats.processed / importStats.total) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800">
+              <strong>Nota:</strong> Los productos se sumarán al catálogo
+              actual. Si ya existen, se crearán duplicados unless utilices el
+              mismo ID interno. (Próxima mejora: detección de duplicados por
+              código).
             </div>
           </div>
         </div>
