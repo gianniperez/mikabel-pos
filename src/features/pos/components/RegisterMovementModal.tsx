@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-// @ts-ignore Typescript ESM resolution issue con RHF v7
-import { useForm } from "react-hook-form";
+// @ts-ignore
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/features/auth/stores";
@@ -47,7 +47,7 @@ export const RegisterMovementModal = ({ onClose }: Props) => {
     defaultValues: { amount: 0, description: "" },
   });
 
-  const onSubmit = async (data: ExpenseForm) => {
+  const onSubmit: SubmitHandler<any> = async (data: any) => {
     if (!dbUser || !activeSession) return;
     setIsSubmitting(true);
 

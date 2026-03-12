@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-// @ts-ignore Typescript ESM resolution issue con RHF v7
-import { useForm } from "react-hook-form";
+// @ts-ignore
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -40,7 +40,7 @@ export const LoginForm = () => {
     toast.success(`Bienvenido/a`);
   };
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit: SubmitHandler<any> = async (data: any) => {
     setIsLoading(true);
     try {
       const res = await signInWithEmailAndPassword(

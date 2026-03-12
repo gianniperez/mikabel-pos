@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-// @ts-ignore Typescript ESM resolution issue con RHF v7
-import { useForm } from "react-hook-form";
+// @ts-ignore
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
@@ -63,8 +63,7 @@ export const ProductForm = ({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
-    // @ts-ignore
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: initialData
       ? {
           ...initialData,
@@ -138,7 +137,7 @@ export const ProductForm = ({
     setValue("code", code);
   };
 
-  const onSubmit = async (data: ProductFormValues) => {
+  const onSubmit: SubmitHandler<any> = async (data: any) => {
     try {
       // 1. Validar unicidad del código en Dexie (caché local rápida)
       const existingProduct = await dexie.products

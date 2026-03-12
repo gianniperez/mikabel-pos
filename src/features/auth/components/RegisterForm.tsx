@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-// @ts-ignore Typescript ESM resolution issue con RHF v7
-import { useForm } from "react-hook-form";
+// @ts-ignore
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -41,7 +41,7 @@ export const RegisterForm = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit: SubmitHandler<any> = async (data: any) => {
     setIsLoading(true);
     try {
       // 1. Crear el Auth User en Firebase

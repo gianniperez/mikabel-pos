@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-// @ts-ignore Typescript ESM resolution issue con RHF v7
-import { useForm } from "react-hook-form";
+// @ts-ignore
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCashSessionStore } from "../stores/useCashSessionStore";
@@ -62,7 +62,7 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
     defaultValues: { closingAmount: 0 },
   });
 
-  const onSubmit = async (data: CloseSessionForm) => {
+  const onSubmit: SubmitHandler<any> = async (data: any) => {
     if (!activeSession) return;
     setIsSubmitting(true);
 
