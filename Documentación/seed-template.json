@@ -1,0 +1,59 @@
+{
+  "categories": [
+    { "id": "cat_1", "name": "Almacén" },
+    { "id": "cat_2", "name": "Bebidas" },
+    { "id": "cat_3", "name": "Carnicería" },
+    { "id": "cat_4", "name": "Congelados" },
+    { "id": "cat_4", "name": "Desayuno" },
+    { "id": "cat_4", "name": "Fiambrería" },
+    { "id": "cat_4", "name": "Frescos" },
+    { "id": "cat_4", "name": "Frutas" },
+    { "id": "cat_4", "name": "Golosinas" },
+    { "id": "cat_4", "name": "Granja" },
+    { "id": "cat_4", "name": "Helados" },
+    { "id": "cat_4", "name": "Lácteos" },
+    { "id": "cat_4", "name": "Limpieza" },
+    { "id": "cat_4", "name": "Panificados" },
+    { "id": "cat_4", "name": "Perfumería" },
+    { "id": "cat_4", "name": "Varios" },
+    { "id": "cat_4", "name": "Verduras" },
+    { "id": "cat_4", "name": "Kiosco" }
+  ],
+  "products": [
+    {
+      "code": "7790070411111",
+      "name": "Coca Cola 1.5L",
+      "brand": "Coca Cola",
+      "categoryId": "cat_1",
+      "costPrice": 1200,
+      "salePrice": 1800,
+      "bulkPrice": 9000,
+      "bulkQuantity": 6,
+      "stock": 24,
+      "minStock": 12,
+      "quantityUnit": "unit"
+    },
+    {
+      "code": "7791234567890",
+      "name": "Leche Entera 1L",
+      "brand": "La Serenísima",
+      "categoryId": "cat_3",
+      "costPrice": 800,
+      "salePrice": 1100,
+      "stock": 30,
+      "minStock": 10,
+      "quantityUnit": "unit"
+    },
+    {
+      "code": "1001",
+      "name": "Pan Francés (kg)",
+      "brand": "Panadería Local",
+      "categoryId": "cat_2",
+      "costPrice": 1000,
+      "salePrice": 1600,
+      "stock": 10,
+      "minStock": 2,
+      "quantityUnit": "kg"
+    }
+  ]
+}

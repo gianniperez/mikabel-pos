@@ -1,0 +1,14 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "{{titleCase routeName}}",
+  description: "Description for {{titleCase routeName}}",
+};
+
+export default function {{pascalCase routeName}}Page() {
+  return (
+    <div>
+      <h1>{{titleCase routeName}} Page</h1>
+    </div>
+  );
+}
