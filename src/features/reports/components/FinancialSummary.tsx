@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getCashSessionsHistory } from "../api/reportsDb";
 import { Banknote, CreditCard, BookUser, TrendingUp } from "lucide-react";
 import { subDays, startOfMonth, subMonths, startOfDay } from "date-fns";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface Props {
   period: "7d" | "30d" | "thisMonth" | "lastMonth";
@@ -36,7 +37,16 @@ export const FinancialSummary = ({ period }: Props) => {
   });
 
   if (isLoading)
-    return <div className="h-40 animate-pulse bg-gray-100 rounded-3xl"></div>;
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-48 w-full rounded-3xl" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32 w-full rounded-3xl" />
+          <Skeleton className="h-32 w-full rounded-3xl" />
+          <Skeleton className="h-32 w-full rounded-3xl" />
+        </div>
+      </div>
+    );
 
   // Filtrado adicional en cliente para el Mes Pasado (para excluir este mes)
   const filteredSessions = sessions.filter((s) => {

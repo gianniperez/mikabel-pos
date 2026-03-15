@@ -135,8 +135,13 @@ export const LoginForm = () => {
         toast.error(
           "Error: Dominio no autorizado. Verifica la consola de Firebase.",
         );
+      } else if (error.code === "auth/operation-not-allowed") {
+        toast.error("Error: El inicio de sesión con Google no está habilitado en Firebase.");
+      } else if (error.code === "auth/popup-blocked") {
+        toast.error("El navegador bloqueó la ventana de inicio de sesión. Permití los popups e intentá de nuevo.");
       } else {
-        toast.error("Error al iniciar con Google");
+        toast.error(`Error al iniciar con Google: ${error.code || "Error desconocido"}`);
+        console.error("Detalle del error:", error);
       }
     } finally {
       setIsLoading(false);

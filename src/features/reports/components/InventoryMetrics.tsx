@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getLowStockProducts, getTopSellingProducts } from "../api/reportsDb";
 import { AlertTriangle, TrendingUp, PackageOpen } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export const InventoryMetrics = () => {
   const { data: lowStockProducts = [], isLoading: isLoadingLow } = useQuery({
@@ -32,9 +33,9 @@ export const InventoryMetrics = () => {
         </div>
 
         {isLoadingLow ? (
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-gray-100 rounded-xl"></div>
-            <div className="h-12 bg-gray-100 rounded-xl"></div>
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
           </div>
         ) : lowStockProducts.length === 0 ? (
           <div className="text-center py-8">
@@ -79,9 +80,10 @@ export const InventoryMetrics = () => {
         </div>
 
         {isLoadingTop ? (
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-gray-100 rounded-xl"></div>
-            <div className="h-12 bg-gray-100 rounded-xl"></div>
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
           </div>
         ) : topSold.length === 0 ? (
           <div className="flex items-center justify-center py-10">

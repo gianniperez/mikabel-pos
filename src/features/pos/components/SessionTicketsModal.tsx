@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { useState } from "react";
 import { AuthPinModal } from "@/components/ui/AuthPinModal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface SessionTicketsModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export const SessionTicketsModal = ({
   isOpen,
   onClose,
 }: SessionTicketsModalProps) => {
-  const { tickets, isLoading, refetch } = useSessionTickets();
+  const { tickets, isLoading, hasMore, loadMore, refetch } = useSessionTickets();
   const { cancelSale, isCancelling } = useCancelSale();
   const { dbUser } = useAuthStore();
 
@@ -58,10 +59,31 @@ export const SessionTicketsModal = ({
     >
       <div className="space-y-4">
         {isLoading ? (
-          <p className="text-gray-500 text-center py-4">Cargando tickets...</p>
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="p-4 border-2 border-gray-200 rounded-xl flex items-center justify-between bg-white"
+              >
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-3 w-40" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : tickets.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No hay ventas registradas en la caja actual.</p>
+          <div className="text-center py-12 text-gray-400">
+            <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🎟️</span>
+            </div>
+            <p className="font-bold">No hay ventas registradas</p>
+            <p className="text-sm">Las ventas aparecerán aquí una vez que se realicen.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -122,6 +144,17 @@ export const SessionTicketsModal = ({
                 </div>
               </div>
             ))}
+
+            {hasMore && (
+              <Button
+                variant="outline"
+                onClick={loadMore}
+                disabled={isLoading}
+                className="w-full mt-2 font-bold uppercase text-xs tracking-widest"
+              >
+                {isLoading ? "Cargando..." : "Cargar más ventas anteriores"}
+              </Button>
+            )}
           </div>
         )}
       </div>

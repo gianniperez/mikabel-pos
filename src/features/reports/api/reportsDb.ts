@@ -52,6 +52,7 @@ export const getTopSellingProducts = async (
     const q = query(
       collection(db, "sales"),
       where("createdAt", ">=", Timestamp.fromDate(startDate)),
+      limit(500), // Límite de seguridad para evitar colapsar el cliente
     );
 
     const snapshot = await getDocs(q);
