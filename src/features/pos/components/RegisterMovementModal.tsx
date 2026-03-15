@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 // @ts-ignore
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/features/auth/stores";
@@ -60,7 +60,6 @@ export const RegisterMovementModal = ({ onClose }: Props) => {
     watch,
     formState: { errors },
   } = useForm<ExpenseForm>({
-    // @ts-ignore
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       amount: 0,
@@ -99,7 +98,7 @@ export const RegisterMovementModal = ({ onClose }: Props) => {
     }
   };
 
-  const onSubmit: SubmitHandler<ExpenseForm> = async (data: ExpenseForm) => {
+  const onSubmit = async (data: ExpenseForm) => {
     if (!dbUser || !activeSession) return;
     setIsSubmitting(true);
 
@@ -172,7 +171,7 @@ export const RegisterMovementModal = ({ onClose }: Props) => {
       title="Salida de Efectivo"
       className="max-w-md"
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4 pt-4">
         <div
           className={`p-3 rounded-lg border mb-6 ${
             selectedPaymentMethod === "cash"

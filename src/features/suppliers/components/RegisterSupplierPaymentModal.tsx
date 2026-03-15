@@ -141,7 +141,7 @@ export const RegisterSupplierPaymentModal = ({
       title="Registrar Compra / Pago"
       className="max-w-md"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+      <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4 pt-4">
         <div className="space-y-1">
           <label className="text-sm font-bold text-gray-700">Proveedor</label>
           <Input
