@@ -32,7 +32,7 @@ export const CashSessionsHistory = () => {
           <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-bold uppercase text-xs tracking-wider">
             <tr>
               <th className="px-6 py-4">Apertura</th>
-              <th className="px-6 py-4">Empleado</th>
+              <th className="px-6 py-4">Usuario</th>
               <th className="px-6 py-4">Cierre</th>
               <th className="px-6 py-4">Estado</th>
               <th className="px-6 py-4 text-right">Fondo Base</th>

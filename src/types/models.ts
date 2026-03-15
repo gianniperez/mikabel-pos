@@ -6,6 +6,7 @@ export interface UserPermissions {
   edit_product: boolean;
   delete_customer: boolean;
   view_reports: boolean;
+  view_suppliers: boolean;
 }
 
 export interface User {

@@ -40,6 +40,10 @@ export const PERMISSION_LABELS: Record<
     label: "Ver Reportes",
     desc: "Habilita el acceso a la sección de estadísticas.",
   },
+  view_suppliers: {
+    label: "Ver Proveedores",
+    desc: "Habilita el acceso a la gestión de proveedores.",
+  },
 };
 
 export const UserPermissionModal = ({
@@ -60,6 +64,7 @@ export const UserPermissionModal = ({
       edit_product: false,
       delete_customer: false,
       view_reports: false,
+      view_suppliers: false,
     },
   );
 
@@ -74,6 +79,7 @@ export const UserPermissionModal = ({
           edit_product: false,
           delete_customer: false,
           view_reports: false,
+          view_suppliers: false,
         },
       );
     }

@@ -82,7 +82,7 @@ export default function DebtsPage() {
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
       <PageHeader
         title="Clientes"
-        description="Gestión de cuentas corrientes y fiados"
+        description="Gestión de cuentas corrientes y fiados."
         actionButton={
           <Button onClick={() => setIsAddModalOpen(true)} variant="primary">
             <Plus className="w-5 h-5" />
@@ -100,13 +100,13 @@ export default function DebtsPage() {
           containerClassName="mb-6"
         />
 
-        <div className="flex-1 overflow-y-auto space-y-3 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {isLoading ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="col-span-full text-center py-10 text-gray-400">
               Cargando clientes...
             </div>
           ) : displayCustomers.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="col-span-full text-center py-10 text-gray-400">
               No se encontraron clientes.
             </div>
           ) : (
@@ -115,7 +115,7 @@ export default function DebtsPage() {
                 key={customer.id}
                 padding="none"
                 onClick={() => setSelectedCustomer(customer)}
-                className="md:m-3 hover:bg-primary-light/10 hover:scale-[1.02] min-h-[140px] cursor-pointer p-5 flex items-center justify-between transition-all group relative"
+                className="hover:bg-primary-light/10 hover:shadow-md hover:scale-[1.02] min-h-[140px] cursor-pointer p-5 flex items-center justify-between transition-all group relative"
               >
                 {/* Left: Avatar & Info */}
                 <div className="flex items-center gap-5 flex-1">

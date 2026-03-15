@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   ReceiptText,
   BarChart3,
+  Truck,
 } from "lucide-react";
 
 import { useAuthStore } from "@/features/auth/stores";
@@ -15,10 +16,11 @@ import { useAuthStore } from "@/features/auth/stores";
 // The bottom bar is extremely limited in space, so we only show the absolute most important routes.
 // "Reportes" might be left for a 'more' menu or just desktop, but let's include it if it fits.
 const MOBILE_NAV = [
+  { name: "Inicio", href: "/", icon: LayoutDashboard },
   { name: "POS", href: "/pos", icon: ShoppingCart },
   { name: "Inventario", href: "/inventory", icon: Package },
-  { name: "Inicio", href: "/", icon: LayoutDashboard },
   { name: "Deudas", href: "/debts", icon: ReceiptText },
+  { name: "Proveedores", href: "/suppliers", icon: Truck },
   { name: "Reportes", href: "/reports", icon: BarChart3 },
 ];
 
@@ -29,6 +31,9 @@ export const BottomBar = () => {
   const visibleNav = MOBILE_NAV.filter((item) => {
     if (item.href === "/reports") {
       return dbUser?.role === "admin" || dbUser?.permissions?.view_reports;
+    }
+    if (item.href === "/suppliers") {
+      return dbUser?.role === "admin" || dbUser?.permissions?.view_suppliers;
     }
     return true;
   });

@@ -58,9 +58,9 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-y-auto bg-gray-50/50 p-4 md:p-6 pb-24">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-y-auto p-4 md:p-6 pb-24">
       {/* Header y Navegación*/}
-      <div className=" bg-gray-50/50 md:-mx-6 px-4 md:px-6 pt-2 pb-4 border-b border-gray-200">
+      <div className=" md:-mx-6 px-4 md:px-6 pt-2 pb-4 border-b">
         <PageHeader
           title="Inteligencia de Negocio"
           description="Reportes, Arqueos y Rendimiento del negocio."

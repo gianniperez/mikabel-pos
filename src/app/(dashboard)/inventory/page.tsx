@@ -48,7 +48,7 @@ export default function InventoryPage() {
       {/* Header Section */}
       <PageHeader
         title="Inventario"
-        description={`${productsCount} productos registrados en el sistema`}
+        description={`${productsCount} productos registrados en el sistema.`}
         onReload={() => toast.info("Sincronización en curso...")}
         actionButton={
           isAdmin ? (

@@ -13,6 +13,7 @@ import {
   Settings,
   UserPlus,
   UserPen,
+  Truck,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores";
 import { auth } from "@/lib/firebase";
@@ -24,6 +25,7 @@ const NAVIGATION = [
   { name: "Punto de Venta", href: "/pos", icon: ShoppingCart },
   { name: "Inventario", href: "/inventory", icon: Package },
   { name: "Deudas", href: "/debts", icon: ReceiptText },
+  { name: "Proveedores", href: "/suppliers", icon: Truck },
   { name: "Reportes", href: "/reports", icon: BarChart3 },
 ];
 
@@ -46,6 +48,9 @@ export const Sidebar = () => {
         {NAVIGATION.filter((item) => {
           if (item.href === "/reports") {
             return user?.role === "admin" || user?.permissions?.view_reports;
+          }
+          if (item.href === "/suppliers") {
+            return user?.role === "admin" || user?.permissions?.view_suppliers;
           }
           return true;
         }).map((item) => {

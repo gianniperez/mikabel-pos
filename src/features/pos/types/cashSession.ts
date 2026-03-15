@@ -19,14 +19,18 @@ export interface CashSession {
   closedAt: number | null;
 }
 
-export type CashMovementType = "supplier_payment" | "owner_withdrawal";
+export type CashMovementType = "supplier_payment" | "owner_withdrawal" | "supplier_debt_payment";
 
 export interface CashMovement {
   id: string;
   sessionId: string;
   employeeId: string;
   amount: number;
+  paidAmount: number; // Nuevo: Para rastrear cuánto se pagó de una deuda
+  status: "pending" | "partial" | "paid"; // Nuevo: Estado de la deuda
   type: CashMovementType;
+  paymentMethod: "cash" | "transfer" | "card" | "debt";
   description: string;
+  supplierId?: string; // Aseguramos que siempre esté si es de proveedor
   createdAt: number;
 }
