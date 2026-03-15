@@ -96,6 +96,18 @@ export interface CashSession {
 }
 
 export type CashMovementType = "supplier_payment" | "owner_withdrawal";
+export type StockMovementType = "sale" | "restock" | "loss" | "consumption" | "correction";
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  quantity: number; // Positivo para entrada, Negativo para salida
+  reason: StockMovementType;
+  description?: string;
+  employeeId: string;
+  sessionId?: string; // Opcional, solo si ocurre durante un turno
+  createdAt: Date;
+}
 
 export interface CashMovement {
   id: string;

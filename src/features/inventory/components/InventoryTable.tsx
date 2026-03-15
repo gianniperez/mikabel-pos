@@ -20,6 +20,9 @@ import { clsx } from "clsx";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { cn } from "@/lib/utils";
+import { StockAdjustmentModal } from "./StockAdjustmentModal";
+import { logStockMovement } from "../api/stockMovements";
 
 const columnHelper = createColumnHelper<LocalProduct>();
 
@@ -28,11 +31,23 @@ export const InventoryTable = ({
 }: {
   onEdit?: (product: LocalProduct) => void;
 }) => {
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [productToDelete, setProductToDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
+
+  const [adjustmentState, setAdjustmentState] = useState<{
+    isOpen: boolean;
+    product: LocalProduct | null;
+    delta: number;
+  }>({
+    isOpen: false,
+    product: null,
+    delta: 0,
+  });
+
   const { dbUser } = useAuthStore();
   const isAdmin = dbUser?.role === "admin";
   const canEditStock = !!(isAdmin || dbUser?.permissions?.edit_stock);
@@ -44,35 +59,35 @@ export const InventoryTable = ({
   const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
   const handleStockChange = useCallback(
-    async (productId: string, currentStock: number, delta: number) => {
+    async (product: LocalProduct, delta: number) => {
       if (!canEditStock) return;
-      try {
-        const newStock = Math.max(0, Number((currentStock + delta).toFixed(3)));
-        const productRef = doc(dbFirestore, "products", productId);
-        await updateDoc(productRef, {
-          stock: newStock,
-          updatedAt: new Date(),
-        });
-        toast.success("Stock actualizado");
-      } catch (error) {
-        console.error("Error actualizando stock:", error);
-        const fbError = error as { code?: string; message?: string };
-        if (
-          fbError.code === "not-found" ||
-          fbError.message?.includes("not found")
-        ) {
-          toast.error(
-            "El producto ya no existe en el servidor. Actualizando lista...",
-          );
-          await db.products.delete(productId);
-        } else {
-          toast.error("Error al actualizar stock");
-        }
-      }
-    },
-    [isAdmin],
-  );
 
+      // Si es una suma (Entrada de mercadería), lo hacemos directo sin modal
+      if (delta > 0) {
+        try {
+          await logStockMovement({
+            productId: product.id,
+            quantity: delta,
+            reason: "restock",
+            employeeId: dbUser?.uid || "unknown",
+          });
+          toast.success("Stock aumentado correctamente");
+        } catch (error) {
+          console.error("Error updating stock directly:", error);
+          toast.error("Error al actualizar el stock");
+        }
+        return;
+      }
+
+      // Si es una resta (Pérdida/Ajuste), abrimos el modal
+      setAdjustmentState({
+        isOpen: true,
+        product,
+        delta,
+      });
+    },
+    [canEditStock, dbUser?.uid],
+  );
   const categoryMap = useMemo(() => {
     return new Map(
       categories.map((c: { id: string; name: string }) => [c.id, c.name]),
@@ -167,7 +182,7 @@ export const InventoryTable = ({
                   {canEditStock && (
                     <button
                       onClick={() =>
-                        handleStockChange(info.row.original.id, stock, -step)
+                        handleStockChange(info.row.original, -step)
                       }
                       className="cursor-pointer p-1 hover:bg-gray-50 hover:text-danger rounded transition-all"
                     >
@@ -194,7 +209,7 @@ export const InventoryTable = ({
                   {canEditStock && (
                     <button
                       onClick={() =>
-                        handleStockChange(info.row.original.id, stock, step)
+                        handleStockChange(info.row.original, step)
                       }
                       className="cursor-pointer p-1 hover:bg-gray-50 hover:text-success rounded transition-all"
                     >
@@ -250,8 +265,13 @@ export const InventoryTable = ({
     ],
   );
 
+  const filteredProducts = useMemo(() => {
+    if (!showLowStockOnly) return products;
+    return products.filter((p: LocalProduct) => p.stock <= p.minStock);
+  }, [products, showLowStockOnly]);
+
   const table = useReactTable({
-    data: products,
+    data: filteredProducts,
     columns,
     state: {
       globalFilter,
@@ -277,12 +297,27 @@ export const InventoryTable = ({
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <SearchBar
-        value={globalFilter ?? ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Buscar por código, nombre, marca o categoría..."
-      />
+      {/* Search Bar & Filters */}
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex-1 w-full">
+          <SearchBar
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Buscar por código, nombre, marca o categoría..."
+          />
+        </div>
+        <Button
+          variant={showLowStockOnly ? "destructive" : "outline"}
+          onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+          className={cn(
+            "w-full md:w-auto h-12 py-0 shrink-0",
+            showLowStockOnly ? "shadow-inner border-danger" : "",
+          )}
+        >
+          <AlertCircle className="w-5 h-5" />
+          Stock Crítico
+        </Button>
+      </div>
 
       {/* Table & Cards Container */}
       <div className="md:bg-white md:border md:border-gray-100 md:rounded-2xl md:shadow-sm overflow-hidden">
@@ -351,7 +386,7 @@ export const InventoryTable = ({
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() =>
-                            handleStockChange(product.id, product.stock, -step)
+                            handleStockChange(product, -step)
                           }
                           className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-danger active:scale-95 transition-transform"
                         >
@@ -362,7 +397,7 @@ export const InventoryTable = ({
                         </span>
                         <button
                           onClick={() =>
-                            handleStockChange(product.id, product.stock, step)
+                            handleStockChange(product, step)
                           }
                           className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-success active:scale-95 transition-transform"
                         >
@@ -506,6 +541,15 @@ export const InventoryTable = ({
           </div>
         </div>
       </div>
+
+      <StockAdjustmentModal
+        isOpen={adjustmentState.isOpen}
+        onClose={() =>
+          setAdjustmentState((prev) => ({ ...prev, isOpen: false }))
+        }
+        product={adjustmentState.product}
+        initialDelta={adjustmentState.delta}
+      />
 
       <ConfirmModal
         isOpen={!!productToDelete}

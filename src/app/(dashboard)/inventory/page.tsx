@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Package, RefreshCw } from "lucide-react";
-import { InventoryTable, ProductForm } from "@/features/inventory/components";
+import {
+  InventoryTable,
+  ProductForm,
+  StockMovementsHistory,
+} from "@/features/inventory/components";
 import { Modal } from "@/components/ui/dialog/Modal";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/dexie";
@@ -11,6 +14,8 @@ import { useAuthStore } from "@/features/auth/stores";
 import { Button } from "@/components/Button";
 import { PageHeader } from "@/components/PageHeader";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
+import { ListFilter, History, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function InventoryPage() {
   usePageMetadata({
@@ -23,6 +28,7 @@ export default function InventoryPage() {
   const [editingProduct, setEditingProduct] = useState<
     import("@/lib/dexie").LocalProduct | null
   >(null);
+  const [activeTab, setActiveTab] = useState<"table" | "history">("table");
 
   const categories = useLiveQuery(() => db.categories.toArray()) || [];
   const productsCount = useLiveQuery(() => db.products.count()) || 0;
@@ -60,8 +66,34 @@ export default function InventoryPage() {
         }
       />
 
-      {/* Main Table Section */}
-      <InventoryTable onEdit={handleEdit} />
+      {/* View Selector Tabs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <Button
+          variant={activeTab === "table" ? "primary" : "outline"}
+          onClick={() => setActiveTab("table")}
+          className="text-sm font-black uppercase"
+        >
+          <ListFilter className="w-4 h-4" />
+          Stock
+        </Button>
+        <Button
+          variant={activeTab === "history" ? "primary" : "outline"}
+          onClick={() => setActiveTab("history")}
+          className="text-sm font-black uppercase"
+        >
+          <History className="w-4 h-4" />
+          Historial de Pérdidas
+        </Button>
+      </div>
+
+      {/* Main Content Section */}
+      <div className="animate-in fade-in duration-500">
+        {activeTab === "table" ? (
+          <InventoryTable onEdit={handleEdit} />
+        ) : (
+          <StockMovementsHistory />
+        )}
+      </div>
 
       {/* New/Edit Product Modal */}
       <Modal

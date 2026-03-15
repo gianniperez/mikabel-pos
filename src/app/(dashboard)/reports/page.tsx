@@ -70,7 +70,7 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6">
           <Button
             onClick={() => setActiveTab("financial")}
-            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all"
+            className="text-sm font-black uppercase"
             variant={activeTab === "financial" ? "primary" : "outline"}
           >
             <BarChart className="h-5 w-5" />
@@ -79,7 +79,7 @@ export default function ReportsPage() {
 
           <Button
             onClick={() => setActiveTab("history")}
-            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all"
+            className="text-sm font-black uppercase"
             variant={activeTab === "history" ? "primary" : "outline"}
           >
             <Clock className="h-5 w-5" />
@@ -88,7 +88,7 @@ export default function ReportsPage() {
 
           <Button
             onClick={() => setActiveTab("inventory")}
-            className="flex items-center w-full gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black text-[10px] sm:text-sm uppercase tracking-widest whitespace-nowrap transition-all"
+            className="text-sm font-black uppercase"
             variant={activeTab === "inventory" ? "primary" : "outline"}
           >
             <PackageSearch className="h-5 w-5" />
