@@ -24,19 +24,19 @@ export const DashboardSummary = () => {
             </Button>
           </Link>
 
-          {isAdmin ||
+          {(isAdmin ||
             dbUser?.permissions?.edit_stock ||
-            (dbUser?.permissions?.edit_product && (
-              <Link href="/inventory">
-                <Button
-                  variant="outline"
-                  className="w-full h-24 md:text-lg hover:border-secondary-light hover:bg-secondary-light/20 flex flex-col text-gray-500 hover:text-secondary transition-all hover:scale-[1.02]"
-                >
-                  <Plus className="w-6 h-6 mb-1" />
-                  Cargar Stock
-                </Button>
-              </Link>
-            ))}
+            dbUser?.permissions?.edit_product) && (
+            <Link href="/inventory">
+              <Button
+                variant="outline"
+                className="w-full h-24 md:text-lg hover:border-secondary-light hover:bg-secondary-light/20 flex flex-col text-gray-500 hover:text-secondary transition-all hover:scale-[1.02]"
+              >
+                <Plus className="w-6 h-6 mb-1" />
+                Cargar Stock
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
 

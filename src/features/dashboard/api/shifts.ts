@@ -26,7 +26,19 @@ export const subscribeToActiveSessions = (
 
     // Obtenemos los nombres de usuario para cada sesión
     const userPromises = snapshot.docs.map(async (docSnap) => {
-      const sessionData = docSnap.data() as CashSession;
+      const data = docSnap.data();
+
+      // Normalizamos el timestamp de Firestore a milisegundos
+      const openedAt =
+        data.openedAt?.toMillis?.() ||
+        data.openedAt?.seconds * 1000 ||
+        Date.now();
+
+      const sessionData = {
+        ...data,
+        id: docSnap.id,
+        openedAt,
+      } as CashSession;
 
       // Intentamos obtener el nombre del usuario desde la colección de usuarios
       try {
@@ -35,14 +47,14 @@ export const subscribeToActiveSessions = (
 
         return {
           ...sessionData,
-          id: docSnap.id,
-          userName: userSnap.exists() ? userSnap.data().name : "Desconocido",
+          userName: userSnap.exists()
+            ? (userSnap.data().name as string)
+            : "Desconocido",
         };
       } catch (error) {
         console.error("Error fetching user for session:", error);
         return {
           ...sessionData,
-          id: docSnap.id,
           userName: "Desconocido",
         };
       }

@@ -92,7 +92,9 @@ export const ActiveShiftsBoard = () => {
                     <Clock className="w-3 h-3 text-gray-400" />
                     <span className="text-[11px] text-gray-500 font-medium">
                       Inició{" "}
-                      {format(session.openedAt, "HH:mm 'hs'", { locale: es })}
+                      {session.openedAt > 0
+                        ? format(session.openedAt, "HH:mm 'hs'", { locale: es })
+                        : "--:--"}
                     </span>
                   </div>
                 </div>
