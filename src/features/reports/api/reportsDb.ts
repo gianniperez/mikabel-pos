@@ -6,6 +6,7 @@ import {
   orderBy,
   limit,
   getDocs,
+  addDoc,
   Timestamp,
 } from "firebase/firestore";
 import { CashSession } from "@/features/pos/types/cashSession";
@@ -130,5 +131,42 @@ export const getLowStockProducts = async (
   } catch (error) {
     console.error("Error fetching low stock products:", error);
     throw error;
+  }
+};
+
+export const getHourlySalesData = async (
+  days: number = 30,
+): Promise<{ hour: string; count: number }[]> => {
+  try {
+    const startDate = startOfDay(subDays(new Date(), days));
+    const q = query(
+      collection(db, "sales"),
+      where("createdAt", ">=", Timestamp.fromDate(startDate)),
+      where("status", "==", "completed"),
+    );
+
+    const snapshot = await getDocs(q);
+    // Inicializar mapa con el rango solicitado: 8hs a 23hs
+    const hourlyMap: Record<number, number> = {};
+    for (let i = 8; i <= 23; i++) {
+      hourlyMap[i] = 0;
+    }
+
+    snapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate?.() || new Date(data.createdAt);
+      const hour = createdAt.getHours();
+      hourlyMap[hour] = (hourlyMap[hour] || 0) + 1;
+    });
+
+    return Object.entries(hourlyMap)
+      .map(([hour, count]) => ({
+        hour: `${hour.padStart(2, "0")}hs`,
+        count,
+      }))
+      .sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
+  } catch (error) {
+    console.error("Error calculating hourly sales data:", error);
+    return [];
   }
 };

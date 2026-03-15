@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { subDays, startOfMonth, subMonths, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PeakHoursChart } from "./PeakHoursChart";
 
 interface Props {
   period: "7d" | "30d" | "thisMonth" | "lastMonth";
@@ -210,6 +211,11 @@ export const FinancialSummary = ({ period }: Props) => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Peak Hours Analysis Chart */}
+      <div className="w-full">
+        <PeakHoursChart />
       </div>
     </div>
   );
