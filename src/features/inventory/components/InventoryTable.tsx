@@ -19,6 +19,7 @@ import { Edit2, Package, AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/Button";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 const columnHelper = createColumnHelper<LocalProduct>();
 
@@ -28,8 +29,15 @@ export const InventoryTable = ({
   onEdit?: (product: LocalProduct) => void;
 }) => {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [productToDelete, setProductToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const { dbUser } = useAuthStore();
   const isAdmin = dbUser?.role === "admin";
+  const canEditStock = !!(isAdmin || dbUser?.permissions?.edit_stock);
+  const canEditPrices = !!(isAdmin || dbUser?.permissions?.edit_prices);
+  const canEditProduct = !!(isAdmin || dbUser?.permissions?.edit_product);
 
   // Suscripción reactiva a Dexie
   const products = useLiveQuery(() => db.products.toArray()) || [];
@@ -37,7 +45,7 @@ export const InventoryTable = ({
 
   const handleStockChange = useCallback(
     async (productId: string, currentStock: number, delta: number) => {
-      if (!isAdmin) return;
+      if (!canEditStock) return;
       try {
         const newStock = Math.max(0, Number((currentStock + delta).toFixed(3)));
         const productRef = doc(dbFirestore, "products", productId);
@@ -71,26 +79,28 @@ export const InventoryTable = ({
     );
   }, [categories]);
 
-  const handleDelete = async (productId: string, productName: string) => {
-    if (
-      !window.confirm(`¿Estás seguro de que deseas eliminar "${productName}"?`)
-    ) {
-      return;
-    }
+  const handleDelete = async () => {
+    if (!productToDelete) return;
 
     try {
       // 1. Borramos localmente para feedback instantáneo
-      await db.products.delete(productId);
+      await db.products.delete(productToDelete.id);
 
       // 2. Borramos en Firestore
-      const productRef = doc(dbFirestore, "products", productId);
+      const productRef = doc(dbFirestore, "products", productToDelete.id);
       await deleteDoc(productRef);
 
       toast.success("Producto eliminado");
     } catch (error) {
       console.error("Error eliminando producto:", error);
       toast.error("Error al eliminar el producto");
+    } finally {
+      setProductToDelete(null);
     }
+  };
+
+  const confirmDelete = (productId: string, productName: string) => {
+    setProductToDelete({ id: productId, name: productName });
   };
 
   const columns = useMemo(
@@ -122,7 +132,7 @@ export const InventoryTable = ({
             <EditablePriceCell
               productId={info.row.original.id}
               initialPrice={info.getValue()}
-              isAdmin={isAdmin}
+              canEdit={isAdmin}
               field="costPrice"
             />
           ),
@@ -134,7 +144,7 @@ export const InventoryTable = ({
             <EditablePriceCell
               productId={info.row.original.id}
               initialPrice={info.getValue()}
-              isAdmin={isAdmin}
+              canEdit={canEditPrices}
               field="salePrice"
             />
           ),
@@ -154,7 +164,7 @@ export const InventoryTable = ({
             return (
               <div className="flex items-center gap-3">
                 <div className="flex items-center rounded-lg p-1 border-gray-200 border-2">
-                  {isAdmin && (
+                  {canEditStock && (
                     <button
                       onClick={() =>
                         handleStockChange(info.row.original.id, stock, -step)
@@ -181,7 +191,7 @@ export const InventoryTable = ({
                       {unit === "unit" ? "un" : unit}
                     </span>
                   </div>
-                  {isAdmin && (
+                  {canEditStock && (
                     <button
                       onClick={() =>
                         handleStockChange(info.row.original.id, stock, step)
@@ -211,7 +221,7 @@ export const InventoryTable = ({
               </button>
               <button
                 onClick={() =>
-                  handleDelete(info.row.original.id, info.row.original.name)
+                  confirmDelete(info.row.original.id, info.row.original.name)
                 }
                 className="cursor-pointer p-2 text-gray-400 hover:text-danger transition-colors"
                 title="Eliminar"
@@ -223,9 +233,21 @@ export const InventoryTable = ({
         }),
       ].filter((col) => {
         const column = col as { id?: string };
-        return isAdmin || (column.id !== "actions" && column.id !== "costPrice");
+        return (
+          isAdmin ||
+          (column.id !== "actions" && column.id !== "costPrice") ||
+          (column.id === "actions" && canEditProduct)
+        );
       }),
-    [categoryMap, onEdit, isAdmin, handleStockChange],
+    [
+      categoryMap,
+      onEdit,
+      isAdmin,
+      canEditStock,
+      canEditPrices,
+      canEditProduct,
+      handleStockChange,
+    ],
   );
 
   const table = useReactTable({
@@ -320,13 +342,52 @@ export const InventoryTable = ({
                     </div>
                   </div>
 
+                  {/* Stock Controls for Mobile */}
+                  {canEditStock && (
+                    <div className="flex items-center justify-between bg-gray-50/50 p-2 rounded-xl border border-gray-100">
+                      <span className="text-xs font-bold text-gray-500 ml-2">
+                        Ajustar Stock
+                      </span>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() =>
+                            handleStockChange(product.id, product.stock, -step)
+                          }
+                          className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-danger active:scale-95 transition-transform"
+                        >
+                          <Minus className="w-5 h-5" />
+                        </button>
+                        <span className="font-black text-primary text-lg min-w-8 text-center">
+                          {product.stock}
+                        </span>
+                        <button
+                          onClick={() =>
+                            handleStockChange(product.id, product.stock, step)
+                          }
+                          className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-success active:scale-95 transition-transform"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Bottom Row: Price, Hovering Actions */}
                   <div className="flex justify-between items-end mt-2">
-                    <span className="font-bold text-gray-900 text-lg">
-                      ${product.salePrice}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        Precio Venta
+                      </span>
+                      <EditablePriceCell
+                        productId={product.id}
+                        initialPrice={product.salePrice}
+                        canEdit={canEditPrices}
+                        field="salePrice"
+                        mobile
+                      />
+                    </div>
 
-                    {isAdmin && (
+                    {canEditProduct && (
                       <div className="flex items-center">
                         <Button
                           onClick={() => onEdit?.(product)}
@@ -337,7 +398,9 @@ export const InventoryTable = ({
                           <Edit2 className="w-5 h-5" />
                         </Button>
                         <Button
-                          onClick={() => handleDelete(product.id, product.name)}
+                          onClick={() =>
+                            confirmDelete(product.id, product.name)
+                          }
                           variant="ghost"
                           className="w-10 h-10 p-0 text-gray-400 hover:text-danger hover:bg-gray-50 flex items-center justify-center"
                           title="Eliminar"
@@ -443,6 +506,15 @@ export const InventoryTable = ({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!productToDelete}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={handleDelete}
+        title="Eliminar Producto"
+        description={`¿Estás seguro de que deseas eliminar permanentemente "${productToDelete?.name}"?`}
+        confirmText="Sí, Eliminar"
+      />
     </div>
   );
 };
@@ -452,13 +524,15 @@ export const InventoryTable = ({
 const EditablePriceCell = ({
   productId,
   initialPrice,
-  isAdmin,
+  canEdit,
   field = "salePrice",
+  mobile = false,
 }: {
   productId: string;
   initialPrice: number;
-  isAdmin: boolean;
+  canEdit: boolean;
   field?: "salePrice" | "costPrice";
+  mobile?: boolean;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState((initialPrice || 0).toString());
@@ -504,9 +578,14 @@ const EditablePriceCell = ({
     }
   };
 
-  if (!isAdmin) {
+  if (!canEdit) {
     return (
-      <span className="font-bold text-gray-900">
+      <span
+        className={clsx(
+          "font-bold text-gray-900",
+          mobile ? "text-lg" : "text-base",
+        )}
+      >
         ${(initialPrice || 0).toLocaleString()}
       </span>
     );
@@ -519,7 +598,10 @@ const EditablePriceCell = ({
         <input
           autoFocus
           type="number"
-          className="w-24 px-2 py-1 text-sm font-bold border-2 border-primary rounded-lg focus:outline-none"
+          className={clsx(
+            "px-2 py-1 font-bold border-2 border-primary rounded-lg focus:outline-none",
+            mobile ? "w-32 text-lg" : "w-24 text-sm",
+          )}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleUpdate}
@@ -538,7 +620,10 @@ const EditablePriceCell = ({
   return (
     <button
       onClick={() => setIsEditing(true)}
-      className="group flex items-center gap-2 font-bold text-gray-900 hover:text-primary transition-colors cursor-pointer"
+      className={clsx(
+        "group flex items-center gap-2 font-bold text-gray-900 hover:text-primary transition-colors cursor-pointer",
+        mobile ? "text-lg" : "text-base",
+      )}
       title={
         field === "salePrice"
           ? "Click para editar precio"

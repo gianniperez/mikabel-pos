@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  sendPasswordResetEmail,
-  fetchSignInMethodsForEmail,
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Button } from "@/components/Button";
@@ -28,13 +26,18 @@ export const ForgotPasswordForm = () => {
     setIsLoading(true);
 
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length === 0) {
-        toast.error("El mail ingresado no está registrado.");
-        setIsLoading(false);
+      // 1. Verificar si el email existe en Firestore
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setErrorObj("Este email no está registrado");
+        setIsLoading(false); // Stop loading if email not found
         return;
       }
 
+      // 2. Si existe, enviar el correo
       await sendPasswordResetEmail(auth, email);
       setIsSuccess(true);
       toast.success("Correo enviado exitosamente");
@@ -121,8 +124,8 @@ export const ForgotPasswordForm = () => {
           error={errorObj || undefined}
         />
 
-        <Button type="submit" disabled={isLoading} variant="primary">
-          {isLoading ? "Enviando..." : "Enviar enlace de recuperación"}
+        <Button type="submit" isLoading={isLoading} variant="primary">
+          Enviar enlace de recuperación
         </Button>
       </form>
 

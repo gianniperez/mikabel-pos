@@ -145,8 +145,13 @@ export const ProductForm = ({
         .equals(data.code)
         .first();
 
-      if (existingProduct && (!initialData || existingProduct.id !== initialData.id)) {
-        toast.error(`El código "${data.code}" ya está asignado al producto: ${existingProduct.name}`);
+      if (
+        existingProduct &&
+        (!initialData || existingProduct.id !== initialData.id)
+      ) {
+        toast.error(
+          `El código "${data.code}" ya está asignado al producto: ${existingProduct.name}`,
+        );
         return;
       }
 

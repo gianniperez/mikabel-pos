@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { db } from "@/lib/firebase";
-import { 
-  doc, 
-  writeBatch, 
-  increment, 
-  getDoc 
-} from "firebase/firestore";
+import { doc, writeBatch, increment, getDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import { useAuthStore } from "@/features/auth/stores";
 
@@ -46,44 +41,50 @@ export const useCancelSale = () => {
       batch.update(saleRef, {
         status: "cancelled",
         cancelledAt: new Date(),
-        cancelledBy: dbUser?.uid
+        cancelledBy: dbUser?.uid,
       });
 
       // 3. Devolver Stock
       if (saleData.items && Array.isArray(saleData.items)) {
-        saleData.items.forEach((item: { product: { id: string }; quantity: number }) => {
-          const productRef = doc(db, "products", item.product.id);
-          batch.update(productRef, {
-            // El item guardaba quantity. Era una venta, así que restó.
-            // Para anular, incrementemos `quantity` nuevamente.
-            stock: increment(item.quantity)
-          });
-        });
+        saleData.items.forEach(
+          (item: { product: { id: string }; quantity: number }) => {
+            const productRef = doc(db, "products", item.product.id);
+            batch.update(productRef, {
+              // El item guardaba quantity. Era una venta, así que restó.
+              // Para anular, incrementemos `quantity` nuevamente.
+              stock: increment(item.quantity),
+            });
+          },
+        );
       }
 
       // 5. Descontar el dinero de la Caja (Si correspondía a la sesión activa)
       // Como un Admin puede anular tickets viejos, hay que restar de la sesión histórica exacta.
       if (saleData.sessionId) {
-         const sessionRef = doc(db, "cash_sessions", saleData.sessionId);
-         const sessionUpdateData: Record<string, unknown> = {
-           totalMovements: increment(-1) // Restamos un movimiento porque la venta se deshizo
-         };
+        const sessionRef = doc(db, "cash_sessions", saleData.sessionId);
+        const sessionUpdateData: Record<string, unknown> = {
+          totalMovements: increment(-1), // Restamos un movimiento porque la venta se deshizo
+        };
 
-         // Restamos el dinero que había sumado según el método de pago original
-         if (saleData.paymentMethod === "cash") {
-           sessionUpdateData.totalCashSales = increment(-saleData.total);
-         } else if (saleData.paymentMethod === "transfer") {
-           sessionUpdateData.totalTransferSales = increment(-saleData.total);
-         } else if (saleData.paymentMethod === "split") {
-            if (saleData.splitPayments?.cash) {
-                sessionUpdateData.totalCashSales = increment(-saleData.splitPayments.cash);
-            }
-            if (saleData.splitPayments?.transfer) {
-                sessionUpdateData.totalTransferSales = increment(-saleData.splitPayments.transfer);
-            }
-         }
+        // Restamos el dinero que había sumado según el método de pago original
+        if (saleData.paymentMethod === "cash") {
+          sessionUpdateData.totalCashSales = increment(-saleData.total);
+        } else if (saleData.paymentMethod === "transfer") {
+          sessionUpdateData.totalTransferSales = increment(-saleData.total);
+        } else if (saleData.paymentMethod === "split") {
+          if (saleData.splitPayments?.cash) {
+            sessionUpdateData.totalCashSales = increment(
+              -saleData.splitPayments.cash,
+            );
+          }
+          if (saleData.splitPayments?.transfer) {
+            sessionUpdateData.totalTransferSales = increment(
+              -saleData.splitPayments.transfer,
+            );
+          }
+        }
 
-         batch.set(sessionRef, sessionUpdateData, { merge: true });
+        batch.set(sessionRef, sessionUpdateData, { merge: true });
       }
 
       // 6. Si era una venta a DEUDA (fiado), restar de la deuda del cliente
@@ -91,7 +92,7 @@ export const useCancelSale = () => {
         const customerRef = doc(db, "customers", saleData.customerId);
         batch.update(customerRef, {
           balance: increment(-saleData.total),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       }
 

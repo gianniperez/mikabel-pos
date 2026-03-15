@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   UserPlus,
+  UserPen,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores";
 import { auth } from "@/lib/firebase";
@@ -42,7 +43,12 @@ export const Sidebar = () => {
 
       {/* Nav Links */}
       <nav className="flex-1 px-4 space-y-1">
-        {NAVIGATION.map((item) => {
+        {NAVIGATION.filter((item) => {
+          if (item.href === "/reports") {
+            return user?.role === "admin" || user?.permissions?.view_reports;
+          }
+          return true;
+        }).map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
@@ -67,9 +73,6 @@ export const Sidebar = () => {
         {/* Admin Tools */}
         {user?.role === "admin" && (
           <div className="pt-4 mt-4 border-t border-gray-100 space-y-1">
-            <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Administración
-            </h3>
             <Link
               href="/register"
               className={`group flex items-center gap-3 px-3 py-3 rounded-mikabel text-sm font-semibold transition-colors ${
@@ -82,6 +85,19 @@ export const Sidebar = () => {
                 className={`w-5 h-5 ${pathname === "/register" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}
               />
               Registrar Empleado
+            </Link>
+            <Link
+              href="/users"
+              className={`group flex items-center gap-3 px-3 py-3 rounded-mikabel text-sm font-semibold transition-colors ${
+                pathname === "/users"
+                  ? "bg-primary text-white"
+                  : "text-gray-500 hover:bg-primary-light/30 hover:text-primary"
+              }`}
+            >
+              <UserPen
+                className={`w-5 h-5 ${pathname === "/users" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}
+              />
+              Gestión de Usuarios
             </Link>
             <Link
               href="/settings"
@@ -121,7 +137,7 @@ export const Sidebar = () => {
               {user?.name || "Usuario"}
             </p>
             <p className="text-xs text-gray-500 truncate capitalize">
-              {user?.role || "Empleado"}
+              {user?.role && user.role === "admin" ? "Admin" : "Operadora"}
             </p>
           </div>
         </div>

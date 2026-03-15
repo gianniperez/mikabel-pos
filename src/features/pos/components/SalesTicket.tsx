@@ -13,6 +13,7 @@ interface SalesTicketProps {
   splitPayments?: {
     cash: number;
     transfer: number;
+    card?: number;
     debt?: number;
   };
 }
@@ -23,6 +24,8 @@ const getMethodName = (method: PaymentMethod) => {
       return "EFECTIVO";
     case "transfer":
       return "TRANSFERENCIA";
+    case "card":
+      return "TARJETA";
     case "debt":
       return "FIADO/LIBRETA";
   }
@@ -153,6 +156,12 @@ export const SalesTicket = React.forwardRef<HTMLDivElement, SalesTicketProps>(
                   <span>Transferencia:</span>
                   <span>${splitPayments.transfer.toFixed(2)}</span>
                 </div>
+                {splitPayments.card && splitPayments.card > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span>Tarjeta:</span>
+                    <span>${splitPayments.card.toFixed(2)}</span>
+                  </div>
+                )}
                 {splitPayments.debt && splitPayments.debt > 0 && (
                   <div className="flex justify-between text-xs">
                     <span>Fiado:</span>

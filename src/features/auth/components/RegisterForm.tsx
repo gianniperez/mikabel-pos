@@ -5,21 +5,32 @@ import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  signOut,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, secondaryAuth, db } from "@/lib/firebase";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { User, Mail, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const passwordErrorMessage =
+  "La contraseña debe tener al menos una mayúscula, una minúscula y un número";
+
 const registerSchema = z
   .object({
     name: z.string().min(2, "Debe tener al menos 2 caracteres"),
     email: z.string().email("Email inválido"),
-    password: z.string().min(6, "Mínimo 6 caracteres"),
+    password: z.string().min(8, "Mínimo 8 caracteres").regex(passwordRegex, {
+      message: passwordErrorMessage,
+    }),
     confirmPassword: z.string(),
+    role: z.enum(["admin", "employee"]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",
@@ -39,30 +50,58 @@ export const RegisterForm = () => {
   } = useForm<RegisterFormValues>({
     // @ts-ignore
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: "employee",
+    },
   });
 
   const onSubmit: SubmitHandler<any> = async (data: any) => {
     setIsLoading(true);
     try {
-      // 1. Crear el Auth User en Firebase
+      // 1. Crear el Auth User en Firebase usando la instancia secundaria
+      // Esto evita que el administrador actual sea deslogueado.
       const res = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         data.email,
         data.password,
       );
 
-      // 2. Crear su Profile Real en Firestore
+      // 2. Enviar email de bienvenida/verificación
+      await sendEmailVerification(res.user);
+
+      // 3. Crear su Profile Real en Firestore
       const userRef = doc(db, "users", res.user.uid);
       await setDoc(userRef, {
         id: res.user.uid,
         uid: res.user.uid,
         name: data.name,
         email: data.email,
-        role: "employee", // Hardcoded por seguridad, solo el Dueño podrá elevar permisos
+        role: data.role,
+        permissions:
+          data.role === "admin"
+            ? {
+                edit_stock: true,
+                edit_prices: true,
+                edit_product: true,
+                delete_customer: true,
+                view_reports: true,
+              }
+            : {
+                edit_stock: false,
+                edit_prices: false,
+                edit_product: false,
+                delete_customer: false,
+                view_reports: false,
+              },
         createdAt: new Date(),
       });
 
       toast.success("¡Empleado registrado exitosamente!");
+
+      // Muy importante: Cerramos la sesión en la instancia secundaria
+      // para que no quede "pegado" el nuevo usuario y permita el siguiente registro.
+      await signOut(secondaryAuth);
+
       router.push("/");
     } catch (error: unknown) {
       const fbError = error as { code: string };
@@ -90,11 +129,22 @@ export const RegisterForm = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           {...register("name")}
-          label="Nombre Completo"
+          label="Nombre"
           type="text"
           placeholder="Juan Perez"
           icon={<User className="h-5 w-5" />}
           error={errors.name?.message}
+        />
+
+        <Input
+          {...register("role")}
+          label="Rol del Usuario"
+          type="select"
+          error={errors.role?.message}
+          options={[
+            { label: "Empleado/a", value: "employee" },
+            { label: "Administrador", value: "admin" },
+          ]}
         />
 
         <Input
@@ -125,10 +175,10 @@ export const RegisterForm = () => {
         <Button
           className="mt-8"
           type="submit"
-          disabled={isLoading}
+          isLoading={isLoading}
           variant="primary"
         >
-          {isLoading ? "Registrando..." : "Crear Cuenta"}
+          Crear Cuenta
         </Button>
       </form>
     </div>

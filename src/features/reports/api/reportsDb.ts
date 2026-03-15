@@ -67,23 +67,28 @@ export const getTopSellingProducts = async (
 
       const items = data.items || [];
 
-      items.forEach((item: { product: { id: string; name: string; brand?: string }; quantity: number }) => {
-        const productId = item.product.id;
-        const productName = item.product.name;
-        const productBrand = item.product.brand;
-        // Para productos por peso, item.quantity son unidades/kg.
-        // Sumamos la cantidad para saber volumen total.
-        const qty = Number(item.quantity) || 0;
+      items.forEach(
+        (item: {
+          product: { id: string; name: string; brand?: string };
+          quantity: number;
+        }) => {
+          const productId = item.product.id;
+          const productName = item.product.name;
+          const productBrand = item.product.brand;
+          // Para productos por peso, item.quantity son unidades/kg.
+          // Sumamos la cantidad para saber volumen total.
+          const qty = Number(item.quantity) || 0;
 
-        if (!productMap[productId]) {
-          productMap[productId] = {
-            name: productName,
-            brand: productBrand,
-            count: 0,
-          };
-        }
-        productMap[productId].count += qty;
-      });
+          if (!productMap[productId]) {
+            productMap[productId] = {
+              name: productName,
+              brand: productBrand,
+              count: 0,
+            };
+          }
+          productMap[productId].count += qty;
+        },
+      );
     });
 
     // 3. Convertir a array, ordenar y limitar a top 5

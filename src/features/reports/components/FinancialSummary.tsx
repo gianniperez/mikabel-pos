@@ -65,7 +65,7 @@ export const FinancialSummary = ({ period }: Props) => {
   return (
     <div className="space-y-6">
       {/* KPI Principal */}
-      <div className="bg-blue-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
+      <div className="bg-linear-to-br from-primary to-primary-dark text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <TrendingUp className="w-48 h-48 rotate-12" />
         </div>

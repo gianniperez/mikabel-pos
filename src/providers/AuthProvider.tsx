@@ -8,7 +8,23 @@ import { useAuthStore } from "@/features/auth/stores";
 import { toast } from "sonner";
 import { useRouter, usePathname } from "next/navigation";
 import { useInventorySync } from "@/features/inventory/hooks";
-import { User as DbUser } from "@/types/models";
+import { User as DbUser, UserPermissions } from "@/types/models";
+
+const DEFAULT_EMPLOYEE_PERMISSIONS: UserPermissions = {
+  edit_stock: false,
+  edit_prices: false,
+  edit_product: false,
+  delete_customer: false,
+  view_reports: false,
+};
+
+const DEFAULT_ADMIN_PERMISSIONS: UserPermissions = {
+  edit_stock: true,
+  edit_prices: true,
+  edit_product: true,
+  delete_customer: true,
+  view_reports: true,
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, clearAuth, loading, firebaseUser, dbUser } = useAuthStore();
@@ -44,6 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuth(user, {
               ...data,
               photoURL: user.photoURL || data.photoURL,
+              permissions:
+                data.permissions ||
+                (data.role === "admin"
+                  ? DEFAULT_ADMIN_PERMISSIONS
+                  : DEFAULT_EMPLOYEE_PERMISSIONS),
               createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
             } as DbUser);
           } else {
@@ -58,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: user.email,
               photoURL: user.photoURL,
               role: "employee",
+              permissions: DEFAULT_EMPLOYEE_PERMISSIONS,
               createdAt: new Date(),
             };
             await setDoc(userRef, newUserData);
@@ -69,11 +91,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             : newUserData;
 
           // Si ya está logueado y trata de entrar a rutas de auth, lo mandamos al index
-          if (pathname === "/login" || pathname === "/forgot-password") {
+          if (
+            pathname === "/login" ||
+            pathname === "/forgot-password" ||
+            pathname === "/reset-password" ||
+            pathname === "/verify-email"
+          ) {
             router.replace("/");
-          } else if (pathname === "/register" && dbUserData?.role !== "admin") {
-            // Empleados regulares o usuarios nuevos no pueden entrar al register
-            toast.error("No tienes permisos para registrar usuarios.");
+          } else if (
+            (pathname === "/register" || pathname === "/users") &&
+            dbUserData?.role !== "admin"
+          ) {
+            // Empleados regulares o usuarios nuevos no pueden entrar al register ni a gestión de usuarios
+            toast.error("No tienes permisos para acceder a esta sección.");
             router.replace("/");
           }
         } catch (error) {
@@ -86,8 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearAuth();
         if (
           pathname !== "/login" &&
-          pathname !== "/register" &&
-          pathname !== "/forgot-password"
+          pathname !== "/forgot-password" &&
+          pathname !== "/reset-password" &&
+          pathname !== "/verify-email"
         ) {
           router.replace("/login");
         }
@@ -100,9 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [setAuth, clearAuth, pathname, router]);
 
-  const isPublicRoute = ["/login", "/register", "/forgot-password"].includes(
-    pathname,
-  );
+  const isPublicRoute = [
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+  ].includes(pathname);
 
   // 1. Mientras se monta el componente o está cargando el estado inicial
   if (!mounted || loading) {

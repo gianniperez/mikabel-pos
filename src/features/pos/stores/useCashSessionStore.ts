@@ -5,7 +5,7 @@ import { CashSession } from "../types/cashSession";
 type CashSessionState = {
   activeSession: CashSession | null;
   isOpen: boolean;
-  
+
   // Actions
   setSession: (session: CashSession) => void;
   updateSession: (updates: Partial<CashSession>) => void;
@@ -29,6 +29,6 @@ export const useCashSessionStore = create<CashSessionState>()(
     }),
     {
       name: "mikabel-cash-session",
-    }
-  )
+    },
+  ),
 );

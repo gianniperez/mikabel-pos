@@ -8,6 +8,7 @@ export interface CashSession {
   totalMovements: number;
   totalCashSales: number;
   totalTransferSales: number;
+  totalCardSales: number;
   totalDebtSales: number;
   totalDebtPayments: number;
   closingAmount: number | null;

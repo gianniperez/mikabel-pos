@@ -31,7 +31,8 @@ export const OfflineBanner = () => {
     <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-center gap-3 w-full animate-in slide-in-from-top-4 z-50 sticky top-0 shadow-lg border-b-4 border-red-700">
       <WifiOff className="h-5 w-5 animate-pulse" />
       <p className="font-bold text-sm md:text-base tracking-wide">
-        Estás sin Internet. El modo offline está activo, tus ventas se guardarán localmente.
+        Estás sin Internet. El modo offline está activo, tus ventas se guardarán
+        localmente.
       </p>
     </div>
   );

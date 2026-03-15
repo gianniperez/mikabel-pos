@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Loader2 } from "lucide-react";
 import type { ButtonProps } from "./Button.types";
 
 function cn(...buttons: ClassValue[]) {
@@ -12,6 +13,7 @@ export function Button({
   variant = "primary",
   rounded = "normal",
   disabled,
+  isLoading,
   ...props
 }: ButtonProps) {
   const variantStyles = {
@@ -34,9 +36,17 @@ export function Button({
         rounded == "full" ? "rounded-full px-8" : "rounded-mikabel px-6",
         className,
       )}
+      disabled={disabled || isLoading}
       {...props}
     >
-      {children}
+      {isLoading ? (
+        <>
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Esperando...</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

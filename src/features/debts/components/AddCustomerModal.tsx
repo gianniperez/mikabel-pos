@@ -77,7 +77,7 @@ export const AddCustomerModal = ({
       toast.error("Ya existe un cliente con ese nombre");
       return;
     }
-    
+
     mutate({ name: trimmedName, phone: phone.trim() });
   };
 

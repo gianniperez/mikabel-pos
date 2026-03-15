@@ -29,7 +29,7 @@ export function PageHeader({
         <p className="text-gray-500">{description}</p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full md:w-auto">
         <div className="hidden md:block">
           {onReload && (
             <button
@@ -41,7 +41,7 @@ export function PageHeader({
             </button>
           )}
         </div>
-        {actionButton && <div>{actionButton}</div>}
+        {actionButton && <div className="w-full md:w-auto">{actionButton}</div>}
       </div>
     </div>
   );

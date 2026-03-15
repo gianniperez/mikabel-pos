@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 // Tiempo máximo entre tipeos para considerarlo un lector (en ms)
 // Un humano teclea a ~100-300ms. Un lector láser inyecta a ~10-30ms.
-const SCANNER_TIMEOUT_MS = 60; 
+const SCANNER_TIMEOUT_MS = 60;
 
 export const useGlobalBarcodeScanner = (isActive: boolean = true) => {
   const barcodeBuffer = useRef<string>("");
@@ -57,7 +57,7 @@ export const useGlobalBarcodeScanner = (isActive: boolean = true) => {
       try {
         // Zero-Latency: Buscamos rápido en RAM (IndexedDB)
         const product = await db.products.where("code").equals(code).first();
-        
+
         if (product) {
           addToCart(product, 1);
           // Toast opcional para feedback visual, pero el beep láser y ver el item suele bastar.

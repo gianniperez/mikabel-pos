@@ -87,7 +87,9 @@ export const getCustomerDebts = async (customerId: string): Promise<Debt[]> => {
   });
 
   // Client-side sort to avoid Firestore composite index requirement (where + orderBy)
-  return fetchedDebts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return fetchedDebts.sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+  );
 };
 
 /**

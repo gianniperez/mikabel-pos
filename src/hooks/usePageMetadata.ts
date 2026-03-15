@@ -14,15 +14,19 @@ interface PageMetadata {
 export const usePageMetadata = ({ title, description }: PageMetadata) => {
   useEffect(() => {
     const previousTitle = document.title;
-    
+
     // El formato canónico de Mikabel: "Página | Mikabel"
-    const formattedTitle = title.includes("Mikabel") ? title : `${title} | Mikabel`;
-    
+    const formattedTitle = title.includes("Mikabel")
+      ? title
+      : `${title} | Mikabel`;
+
     document.title = formattedTitle;
 
     // Opcional: Actualizar meta descripción (menos crítico en Client-side UX)
     if (description) {
-      const metaDescription = document.querySelector('meta[name="description"]');
+      const metaDescription = document.querySelector(
+        'meta[name="description"]',
+      );
       if (metaDescription) {
         metaDescription.setAttribute("content", description);
       }

@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import { AuthPinModal } from "@/components/ui/AuthPinModal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 interface SessionTicketsModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const SessionTicketsModal = ({
   const { dbUser } = useAuthStore();
 
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [ticketToCancel, setTicketToCancel] = useState<string | null>(null);
 
   const handleCancelClick = (ticketId: string) => {
@@ -31,20 +33,19 @@ export const SessionTicketsModal = ({
     setIsPinModalOpen(true);
   };
 
-  const handlePinSuccess = async () => {
+  const handleAuthSuccess = () => {
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
     if (!ticketToCancel) return;
 
-    if (
-      confirm(
-        "¿Confirmar anulación? Esta acción devolverá el stock y restará el dinero de la caja activa actual.",
-      )
-    ) {
-      const success = await cancelSale(ticketToCancel);
-      if (success) {
-        refetch();
-      }
+    const success = await cancelSale(ticketToCancel);
+    if (success) {
+      refetch();
     }
     setTicketToCancel(null);
+    setIsConfirmModalOpen(false);
   };
 
   return (
@@ -128,8 +129,18 @@ export const SessionTicketsModal = ({
       <AuthPinModal
         isOpen={isPinModalOpen}
         onClose={() => setIsPinModalOpen(false)}
-        onSuccess={handlePinSuccess}
+        onSuccess={handleAuthSuccess}
         title="Autorizar Anulación"
+      />
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+        title="Confirmar Anulación"
+        description="Esta acción devolverá el stock y restará el dinero de la caja activa actual."
+        confirmText="Sí, Anular"
+        isLoading={isCancelling}
       />
     </Modal>
   );

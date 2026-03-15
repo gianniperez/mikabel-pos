@@ -64,6 +64,7 @@ export const OpenSessionModal = ({ onClose }: Props) => {
         totalMovements: 0,
         totalCashSales: 0,
         totalTransferSales: 0,
+        totalCardSales: 0,
         totalDebtSales: 0,
         totalDebtPayments: 0,
         closingAmount: null,
@@ -115,8 +116,8 @@ export const OpenSessionModal = ({ onClose }: Props) => {
             {...register("openingAmount")}
           />
           <p className="text-xs text-gray-500">
-            Declara el efectivo con el que comienzas el turno para que el
-            arqueo de cierre contemple este monto.
+            Declara el efectivo con el que comienzas el turno para que el arqueo
+            de cierre contemple este monto.
           </p>
         </div>
 

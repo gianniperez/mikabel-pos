@@ -3,7 +3,7 @@ import { Modal } from "@/components/ui/dialog/Modal";
 import { Button } from "@/components/Button";
 import { usePosStore, type PaymentMethod } from "../stores/usePosStore";
 import { useCashSessionStore } from "../stores/useCashSessionStore";
-import { Banknote, CreditCard, BookUser } from "lucide-react";
+import { Banknote, CreditCard, BookUser, BanknoteArrowUp } from "lucide-react";
 import { clsx } from "clsx";
 import { toast } from "sonner";
 import { useRef, useState as useReactState, useEffect } from "react";
@@ -37,7 +37,11 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [isMixedPayment, setIsMixedPayment] = useState(false);
+
+  // Estados para Pagos Mixtos (Inputs manuales)
   const [mixedCash, setMixedCash] = useState<number>(0);
+  const [mixedTransfer, setMixedTransfer] = useState<number>(0);
+  const [mixedCard, setMixedCard] = useState<number>(0);
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers"],
@@ -57,7 +61,10 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
   const componentRef = useRef<HTMLDivElement>(null);
 
   // Guardamos una "foto" del ticket para imprimir, así podemos vaciar el carrito inmediatamente
-  const [frozenTicket, setFrozenTicket] = useReactState<(import("../stores/usePosStore").PendingTicket & { cashAmount?: number }) | null>(null);
+  const [frozenTicket, setFrozenTicket] = useReactState<
+    | (import("../stores/usePosStore").PendingTicket & { cashAmount?: number })
+    | null
+  >(null);
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -100,7 +107,7 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       // 1. Crear Objeto Ticket para la Cola Optimista
       const ticketId = `ticket_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      const newTicket = {
+      const newTicket: any = {
         id: ticketId,
         items: [...cart],
         subtotal: cartSubtotal,
@@ -112,22 +119,28 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         sessionId: activeSession.id,
         employeeId: activeSession.employeeId,
         status: "pending" as const,
-        ...(paymentMethod === "debt" && selectedCustomerId
-          ? { customerId: selectedCustomerId }
-          : {}),
-        ...(isMixedPayment
-          ? {
-              splitPayments: {
-                cash: mixedCash,
-                transfer: Math.max(0, cartTotal - mixedCash),
-              },
-            }
-          : {}),
       };
 
-      // Ajustar método primario si es mixto para consistencia visual (se asume el recargo si hay transferencia)
+      if (paymentMethod === "debt" && selectedCustomerId) {
+        newTicket.customerId = selectedCustomerId;
+      }
+
       if (isMixedPayment) {
-        newTicket.paymentMethod = "transfer";
+        // En pago mixto, guardamos el desglose. El método principal es el que "emite" el ticket.
+        newTicket.splitPayments = {
+          cash:
+            paymentMethod === "cash"
+              ? Math.max(0, cartTotal - mixedTransfer - mixedCard)
+              : mixedCash,
+          transfer:
+            paymentMethod === "transfer"
+              ? Math.max(0, cartTotal - mixedCash - mixedCard)
+              : mixedTransfer,
+          card:
+            paymentMethod === "card"
+              ? Math.max(0, cartTotal - mixedCash - mixedTransfer)
+              : mixedCard,
+        };
       }
 
       // 2. CONGELAR TICKET PARA IMPRESIÓN (Disparará handlePrint vía useEffect)
@@ -162,6 +175,8 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
       case "cash":
         return <Banknote className="w-6 h-6" />;
       case "transfer":
+        return <BanknoteArrowUp className="w-6 h-6" />;
+      case "card":
         return <CreditCard className="w-6 h-6" />;
       case "debt":
         return <BookUser className="w-6 h-6" />;
@@ -174,6 +189,8 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
         return "Efectivo";
       case "transfer":
         return "Transf";
+      case "card":
+        return "Tarjeta";
       case "debt":
         return "Fiado";
     }
@@ -222,20 +239,22 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <label className="text-sm font-bold text-gray-700">
             Medio de Pago
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {(["cash", "transfer", "debt"] as PaymentMethod[]).map((method) => (
-              <Button
-                key={method}
-                onClick={() => setPaymentMethod(method)}
-                variant={paymentMethod === method ? "primary" : "outline"}
-                className="h-auto flex-col items-center justify-center py-4 px-2 mt-2"
-              >
-                {getMethodIcon(method)}
-                <span className="text-xs font-black uppercase mt-2">
-                  {getMethodName(method)}
-                </span>
-              </Button>
-            ))}
+          <div className="grid grid-cols-4 gap-2">
+            {(["cash", "transfer", "card", "debt"] as PaymentMethod[]).map(
+              (method) => (
+                <Button
+                  key={method}
+                  onClick={() => setPaymentMethod(method)}
+                  variant={paymentMethod === method ? "primary" : "outline"}
+                  className="h-auto flex-col items-center justify-center py-4 px-1 mt-2"
+                >
+                  {getMethodIcon(method)}
+                  <span className="text-[10px] font-black uppercase mt-2">
+                    {getMethodName(method)}
+                  </span>
+                </Button>
+              ),
+            )}
           </div>
         </div>
 
@@ -244,13 +263,15 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
           <div className="flex flex-col">
             <span className="text-sm font-bold text-primary">¿Pago Mixto?</span>
             <span className="text-[10px] text-gray-500 font-medium">
-              Efectivo + Transferencia
+              Efectivo + Transferencia + Tarjeta
             </span>
           </div>
           <button
             onClick={() => {
               setIsMixedPayment(!isMixedPayment);
               setMixedCash(0);
+              setMixedTransfer(0);
+              setMixedCard(0);
             }}
             className={clsx(
               "cursor-pointer w-12 h-6 rounded-full transition-colors relative",
@@ -268,30 +289,83 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
 
         {/* Inputs de Pago Mixto */}
         {isMixedPayment && (
-          <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase">
-                Efectivo
-              </label>
-              <Input
-                type="number"
-                value={mixedCash || ""}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setMixedCash(val > cartTotal ? cartTotal : val);
-                }}
-                className="text-xl font-black"
-                placeholder="$0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase">
-                Transferencia
-              </label>
-              <div className="h-[52px] flex items-center px-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl font-black text-xl text-gray-400">
-                ${Math.max(0, cartTotal - mixedCash)}
+          <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="grid grid-cols-3 gap-3">
+              {/* Efectivo */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase">
+                  Efectivo
+                </label>
+                {paymentMethod === "cash" ? (
+                  <div className="h-[42px] flex items-center justify-center bg-primary/5 border border-primary/20 rounded-xl font-black text-sm text-primary">
+                    ${Math.max(0, cartTotal - mixedTransfer - mixedCard)}
+                  </div>
+                ) : (
+                  <Input
+                    type="number"
+                    value={mixedCash || ""}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const max = cartTotal - mixedTransfer - mixedCard;
+                      setMixedCash(val > max ? max : val);
+                    }}
+                    className="h-10 text-sm font-bold"
+                    placeholder="$0"
+                  />
+                )}
+              </div>
+
+              {/* Transferencia */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase">
+                  Transf.
+                </label>
+                {paymentMethod === "transfer" ? (
+                  <div className="h-[42px] flex items-center justify-center bg-primary/5 border border-primary/20 rounded-xl font-black text-sm text-primary">
+                    ${Math.max(0, cartTotal - mixedCash - mixedCard)}
+                  </div>
+                ) : (
+                  <Input
+                    type="number"
+                    value={mixedTransfer || ""}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const max = cartTotal - mixedCash - mixedCard;
+                      setMixedTransfer(val > max ? max : val);
+                    }}
+                    className="h-10 text-sm font-bold"
+                    placeholder="$0"
+                  />
+                )}
+              </div>
+
+              {/* Tarjeta */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase">
+                  Tarjeta
+                </label>
+                {paymentMethod === "card" ? (
+                  <div className="h-[42px] flex items-center justify-center bg-primary/5 border border-primary/20 rounded-xl font-black text-sm text-primary">
+                    ${Math.max(0, cartTotal - mixedCash - mixedTransfer)}
+                  </div>
+                ) : (
+                  <Input
+                    type="number"
+                    value={mixedCard || ""}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const max = cartTotal - mixedCash - mixedTransfer;
+                      setMixedCard(val > max ? max : val);
+                    }}
+                    className="h-10 text-sm font-bold"
+                    placeholder="$0"
+                  />
+                )}
               </div>
             </div>
+            <p className="text-[10px] text-gray-400 text-center italic">
+              El método seleccionado arriba se completará automáticamente.
+            </p>
           </div>
         )}
 
@@ -337,10 +411,12 @@ export const CheckoutModal = ({ isOpen, onClose }: CheckoutModalProps) => {
               onChange={(e) => setSelectedCustomerId(e.target.value)}
               options={[
                 { value: "", label: "-- Selecciona un Cliente --" },
-                ...customers.map((c: { id: string; name: string; totalDebt: number }) => ({
-                  value: c.id,
-                  label: `${c.name} (Deuda: $${c.totalDebt})`,
-                })),
+                ...customers.map(
+                  (c: { id: string; name: string; totalDebt: number }) => ({
+                    value: c.id,
+                    label: `${c.name} (Deuda: $${c.totalDebt})`,
+                  }),
+                ),
               ]}
             />
           </div>

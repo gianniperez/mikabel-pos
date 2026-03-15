@@ -1,11 +1,20 @@
 export type UserRole = "admin" | "employee";
 
+export interface UserPermissions {
+  edit_stock: boolean;
+  edit_prices: boolean;
+  edit_product: boolean;
+  delete_customer: boolean;
+  view_reports: boolean;
+}
+
 export interface User {
   uid: string;
   name: string;
   photoURL: string | null;
   email: string;
   role: UserRole;
+  permissions?: UserPermissions;
   createdAt: Date;
 }
 

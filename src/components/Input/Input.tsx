@@ -130,7 +130,7 @@ export const Input = forwardRef<
           )}
         </div>
         {error && (
-          <p className="text-[#EF4444] text-xs font-medium mt-1">{error}</p>
+          <p className="text-danger text-xs font-medium mt-1">{error}</p>
         )}
         {helperText && !error && (
           <p className="text-gray-400 text-[11px] font-medium mt-1 leading-tight">

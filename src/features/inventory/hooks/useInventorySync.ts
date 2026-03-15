@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db as firestore } from "@/lib/firebase";
-import { db as dexie, type LocalProduct, type LocalCategory } from "@/lib/dexie";
+import {
+  db as dexie,
+  type LocalProduct,
+  type LocalCategory,
+} from "@/lib/dexie";
 import { toast } from "sonner";
 
 export const useInventorySync = (enabled: boolean) => {
@@ -34,7 +38,9 @@ export const useInventorySync = (enabled: boolean) => {
               await dexie.categories.delete(change.doc.id);
             }
           }
-          console.log(`Categorías sincronizadas (${snapshot.docChanges().length} cambios).`);
+          console.log(
+            `Categorías sincronizadas (${snapshot.docChanges().length} cambios).`,
+          );
         } catch (error) {
           console.error("Error sincronizando categorías:", error);
         }
@@ -63,7 +69,9 @@ export const useInventorySync = (enabled: boolean) => {
               await dexie.products.delete(change.doc.id);
             }
           }
-          console.log(`Productos sincronizados (${snapshot.docChanges().length} cambios).`);
+          console.log(
+            `Productos sincronizados (${snapshot.docChanges().length} cambios).`,
+          );
           setLastSync(new Date());
           setIsSyncing(false);
         } catch (error) {

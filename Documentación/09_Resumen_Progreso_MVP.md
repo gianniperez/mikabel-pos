@@ -57,4 +57,5 @@ Dotamos a Mikabel de analíticas cruciales para la toma de decisiones empresaria
 - **Soporte Offline Nativo:** Cinta adhesiva carmesí global (`OfflineBanner`) que detecta y reporta microcortes de Internet. La caja y Dexie siguen funcionando localmente en un bucle optimista que empuja las ventas ni bien regrese la señal, sin que el cajero deba asustarse.
 
 ---
+
 Con esto, consolidamos el núcleo del Point of Sale. Mikabel es oficialmente una **plataforma ininterrumpible**.

@@ -35,7 +35,7 @@ export default function ReportsPage() {
   >("30d");
 
   // Seguridad de Ruta Client-Side
-  if (dbUser?.role !== "admin") {
+  if (dbUser?.role !== "admin" && !dbUser?.permissions?.view_reports) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-6 text-center">
         <div className="p-4 bg-danger-light/30 text-danger rounded-2xl mb-4">

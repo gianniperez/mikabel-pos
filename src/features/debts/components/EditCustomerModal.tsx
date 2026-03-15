@@ -6,7 +6,8 @@ import { Input } from "@/components/Input";
 import { toast } from "sonner";
 import { editCustomer, deleteCustomer } from "../api/debtsDb";
 import { Customer } from "../types/debt";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { useAuthStore } from "@/features/auth/stores";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 interface EditCustomerModalProps {
   isOpen: boolean;
@@ -21,15 +22,15 @@ export const EditCustomerModal = ({
 }: EditCustomerModalProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { dbUser } = useAuthStore();
 
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
         setName(customer?.name || "");
         setPhone(customer?.phone || "");
-        setIsDeleting(false);
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -87,18 +88,12 @@ export const EditCustomerModal = ({
   };
 
   const handleDelete = () => {
-    if (customer?.totalDebt && customer.totalDebt > 0) {
-      toast.error(
-        "No puedes eliminar un cliente con deuda activa. Debe saldarla primero.",
-      );
-      setIsDeleting(false);
-      return;
-    }
     deleteMutation.mutate();
+    setIsConfirmDeleteOpen(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !isDeleting) {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleEdit();
     }
@@ -112,98 +107,58 @@ export const EditCustomerModal = ({
       onClose={() =>
         !editMutation.isPending && !deleteMutation.isPending && onClose()
       }
-      title={isDeleting ? "Eliminar Cliente" : "Editar Cliente"}
-      description={
-        isDeleting
-          ? `¿Estás seguro de que deseas eliminar permanentemente a ${customer.name}?`
-          : "Modifica el nombre o apodo del cliente."
-      }
+      title="Editar Cliente"
+      description="Modifica el nombre o apodo del cliente."
       className="max-w-sm"
     >
       <div className="space-y-6 pt-4">
-        {!isDeleting ? (
-          <>
-            <Input
-              label="Nombre o Apodo"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              disabled={editMutation.isPending}
-            />
+        <Input
+          label="Nombre o Apodo"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          disabled={editMutation.isPending}
+        />
 
-            <Input
-              label="Teléfono"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={editMutation.isPending}
-            />
-
-            <div className="flex justify-between items-center pt-2">
-              <button
-                type="button"
-                onClick={() => setIsDeleting(true)}
-                className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
-                title="Eliminar cliente"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={onClose}
-                  disabled={editMutation.isPending}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleEdit}
-                  disabled={
-                    !name.trim() ||
-                    (name === customer.name && phone === customer.phone) ||
-                    editMutation.isPending
-                  }
-                >
-                  {editMutation.isPending ? "Guardando..." : "Guardar Cambios"}
-                </Button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="space-y-4">
-            {customer.totalDebt > 0 && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                <p>
-                  <strong>¡Atención!</strong> Este cliente tiene una deuda
-                  activa de <strong>${customer.totalDebt}</strong>. No puede ser
-                  eliminado hasta que la salde.
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="secondary"
-                onClick={() => setIsDeleting(false)}
-                disabled={deleteMutation.isPending}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending || customer.totalDebt > 0}
-              >
-                {deleteMutation.isPending ? "Eliminando..." : "Sí, Eliminar"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <Input
+          label="Teléfono"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={editMutation.isPending}
+        />
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            disabled={editMutation.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleEdit}
+            disabled={
+              !name.trim() ||
+              (name === customer.name && phone === customer.phone) ||
+              editMutation.isPending
+            }
+          >
+            {editMutation.isPending ? "Guardando..." : "Guardar Cambios"}
+          </Button>
+        </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="Eliminar Cliente"
+        description={`¿Estás seguro de que deseas eliminar permanentemente a ${customer.name}?`}
+        confirmText="Sí, Eliminar"
+        isLoading={deleteMutation.isPending}
+      />
     </Modal>
   );
 };

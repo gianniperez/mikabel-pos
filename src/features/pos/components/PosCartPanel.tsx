@@ -11,6 +11,7 @@ import {
   BookUser,
   Tag,
   Scale,
+  BanknoteArrowUp,
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { CheckoutModal } from "./CheckoutModal";
@@ -33,13 +34,19 @@ export const PosCartPanel = () => {
     clearCart,
   } = usePosStore();
 
-  const { transferSurcharge } = useSettingsStore();
+  const { transferSurcharge, cardSurcharge } = useSettingsStore();
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [weightModalItem, setWeightModalItem] = useState<CartItem | null>(null);
 
   const handleCheckout = () => {
     setIsCheckoutOpen(true);
+  };
+
+  const getSurchargeRate = () => {
+    if (paymentMethod === "transfer") return transferSurcharge;
+    if (paymentMethod === "card") return cardSurcharge;
+    return 0;
   };
 
   return (
@@ -160,42 +167,42 @@ export const PosCartPanel = () => {
       {/* Footer de Pagos y Totales */}
       <div className="bg-gray-50 rounded-mikabel border-t border-gray-200 flex flex-col">
         {/* Selector de Método de Pago */}
-        <div className="grid grid-cols-3 gap-1 p-3">
-          <button
+        <div className="grid grid-cols-4 gap-1 p-3">
+          <Button
             onClick={() => setPaymentMethod("cash")}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-mikabel transition-all border-2 cursor-pointer ${
-              paymentMethod === "cash"
-                ? "bg-white text-success border-success/50 shadow-sm"
-                : "text-gray-500 border-transparent hover:bg-gray-100"
-            }`}
+            className="flex-col gap-1 py-2 px-1"
+            variant={paymentMethod === "cash" ? "primary" : "outline"}
           >
             <Banknote className="w-5 h-5" />
             <span className="text-[10px] font-black uppercase">Efectivo</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => setPaymentMethod("transfer")}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-mikabel transition-all border-2 cursor-pointer ${
-              paymentMethod === "transfer"
-                ? "bg-white text-secondary border-secondary/50 shadow-sm"
-                : "text-gray-500 border-transparent hover:bg-gray-100"
-            }`}
+            className="flex-col gap-1 py-2 px-1"
+            variant={paymentMethod === "transfer" ? "primary" : "outline"}
+          >
+            <BanknoteArrowUp className="w-5 h-5" />
+            <span className="text-[10px] font-black uppercase">Transf</span>
+          </Button>
+
+          <Button
+            onClick={() => setPaymentMethod("card")}
+            className="flex-col gap-1 py-2 px-1"
+            variant={paymentMethod === "card" ? "primary" : "outline"}
           >
             <CreditCard className="w-5 h-5" />
-            <span className="text-[10px] font-black uppercase">Transf</span>
-          </button>
+            <span className="text-[10px] font-black uppercase">Tarjeta</span>
+          </Button>
 
-          <button
+          <Button
             onClick={() => setPaymentMethod("debt")}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-mikabel transition-all border-2 cursor-pointer ${
-              paymentMethod === "debt"
-                ? "bg-white text-terciary border-terciary/50 shadow-sm"
-                : "text-gray-500 border-transparent hover:bg-gray-100"
-            }`}
+            className="flex-col gap-1 py-2 px-1"
+            variant={paymentMethod === "debt" ? "primary" : "outline"}
           >
             <BookUser className="w-5 h-5" />
             <span className="text-[10px] font-black uppercase">Fiado</span>
-          </button>
+          </Button>
         </div>
 
         {/* Zona de Total y Botón Cobrar */}
@@ -209,14 +216,14 @@ export const PosCartPanel = () => {
           )}
 
           {surcharge > 0 && (
-            <div className="flex items-center justify-between text-xs font-bold text-red-500 mb-1">
-              <span>Recargo (+{Math.round(transferSurcharge * 100)}%):</span>
+            <div className="flex items-center justify-between text-xs font-bold text-danger mb-1">
+              <span>Recargo (+{Math.round(getSurchargeRate() * 100)}%):</span>
               <span>+${surcharge}</span>
             </div>
           )}
 
           {discount > 0 && (
-            <div className="flex items-center justify-between text-xs font-bold text-green-500 mb-1">
+            <div className="flex items-center justify-between text-xs font-bold text-success mb-1">
               <span>Descuento:</span>
               <span>-${discount}</span>
             </div>

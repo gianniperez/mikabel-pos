@@ -10,6 +10,11 @@ import {
   signInWithPopup,
   signInWithRedirect,
   GoogleAuthProvider,
+  linkWithCredential,
+  AuthCredential,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { toast } from "sonner";
@@ -18,23 +23,46 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Mail } from "lucide-react";
 
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const passwordErrorMessage =
+  "La contraseña debe tener al menos una mayúscula, una minúscula y un número";
+
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showLinkPrompt, setShowLinkPrompt] = useState(false);
+  const [pendingGoogleCredential, setPendingGoogleCredential] =
+    useState<AuthCredential | null>(null);
+  const [linkPassword, setLinkPassword] = useState("");
+  const [linkPasswordError, setLinkPasswordError] = useState<string | null>(
+    null,
+  );
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     // @ts-ignore
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email:
+        typeof window !== "undefined"
+          ? localStorage.getItem("mikabel_remember_email") || ""
+          : "",
+      rememberMe:
+        typeof window !== "undefined"
+          ? !!localStorage.getItem("mikabel_remember_email")
+          : false,
+    },
   });
 
   const handleAuthSuccess = async () => {
@@ -44,11 +72,26 @@ export const LoginForm = () => {
   const onSubmit: SubmitHandler<any> = async (data: any) => {
     setIsLoading(true);
     try {
+      // Configurar persistencia según el checkbox
+      const persistence = data.rememberMe
+        ? browserLocalPersistence
+        : browserSessionPersistence;
+
+      await setPersistence(auth, persistence);
+
       const res = await signInWithEmailAndPassword(
         auth,
         data.email,
         data.password,
       );
+
+      // Guardar email si "Recordarme" está activo
+      if (data.rememberMe) {
+        localStorage.setItem("mikabel_remember_email", data.email);
+      } else {
+        localStorage.removeItem("mikabel_remember_email");
+      }
+
       await handleAuthSuccess();
     } catch (error: unknown) {
       toast.error(
@@ -62,26 +105,83 @@ export const LoginForm = () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      // En modo PWA (standalone), los popups suelen ser bloqueados o problemáticos
       const isStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as any).standalone;
 
+      let result;
       if (isStandalone) {
         await signInWithRedirect(auth, provider);
+        return; // El flujo continúa después del redirect
       } else {
-        await signInWithPopup(auth, provider);
+        result = await signInWithPopup(auth, provider);
         toast.success(`Bienvenido/a`);
       }
     } catch (error: any) {
       console.error("Error en Google Login:", error);
-      if (error.code === "auth/unauthorized-domain") {
+
+      if (error.code === "auth/account-exists-with-different-credential") {
+        // Guardamos la credencial de Google para usarla luego en el link
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        if (credential) {
+          setPendingGoogleCredential(credential);
+          setShowLinkPrompt(true);
+          toast.info(
+            "Tu correo ya está registrado con contraseña. Ingresala para activar Google.",
+            { duration: 6000 },
+          );
+        }
+      } else if (error.code === "auth/unauthorized-domain") {
         toast.error(
           "Error: Dominio no autorizado. Verifica la consola de Firebase.",
         );
       } else {
         toast.error("Error al iniciar con Google");
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLinkAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingGoogleCredential || !linkPassword) return;
+    setLinkPasswordError(null);
+
+    // Validar contraseña antes de intentar vincular
+    if (!passwordRegex.test(linkPassword)) {
+      setLinkPasswordError(passwordErrorMessage);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // 1. Iniciar sesión con email/password (las credenciales que ya existen)
+      const userEmail = (pendingGoogleCredential as any)._tokenResponse?.email;
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        userEmail,
+        linkPassword,
+      );
+
+      // 2. Vincular la credencial de Google a este usuario
+      await linkWithCredential(
+        userCredential.user,
+        pendingGoogleCredential,
+      ).catch((err) => {
+        // Si ya está vinculado, linkWithCredential podría fallar.
+        // Pero en este punto, si llegamos aquí es porque Firebase reportó conflicto inicial.
+        console.warn("Error vinculando (posiblemente ya estaba):", err);
+      });
+
+      toast.success("¡Cuentas vinculadas! Ahora puedes usar Google.");
+      setShowLinkPrompt(false);
+      setPendingGoogleCredential(null);
+      setLinkPassword("");
+    } catch (error: any) {
+      console.error("Error al vincular cuentas:", error);
+      toast.error("Contraseña incorrecta. No se pudo vincular con Google.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -127,8 +227,22 @@ export const LoginForm = () => {
           }
           {...register("password")}
         />
-        <Button type="submit" disabled={isLoading} variant="primary">
-          {isLoading ? "Conectando..." : "Iniciar Sesión"}
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center space-x-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              {...register("rememberMe")}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary transition-all cursor-pointer"
+            />
+            <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
+              Recordarme
+            </span>
+          </label>
+        </div>
+
+        <Button type="submit" isLoading={isLoading} variant="primary">
+          Iniciar Sesión
         </Button>
       </form>
 
@@ -142,7 +256,8 @@ export const LoginForm = () => {
 
       <Button
         onClick={handleGoogleLogin}
-        disabled={isLoading}
+        isLoading={isLoading}
+        disabled={showLinkPrompt}
         variant="ghost"
         className="w-full shadow-md mt-4 hover:shadow-xl"
       >
@@ -166,6 +281,49 @@ export const LoginForm = () => {
         </svg>
         Google
       </Button>
+
+      {/* Modal/Overlay para Vincular Cuenta */}
+      {showLinkPrompt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              Activar Acceso con Google
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Para vincular tu cuenta, por favor ingresa tu contraseña de
+              Mikabel una última vez.
+            </p>
+
+            <form onSubmit={handleLinkAccount} className="space-y-4">
+              <Input
+                label="Tu Contraseña"
+                type="password"
+                placeholder="••••••"
+                value={linkPassword}
+                onChange={(e) => {
+                  setLinkPassword(e.target.value);
+                  if (linkPasswordError) setLinkPasswordError(null);
+                }}
+                error={linkPasswordError || undefined}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowLinkPrompt(false)}
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="primary" isLoading={isLoading}>
+                  Vincular y Entrar
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 text-center border-t border-gray-100 pt-6">
         <span className="text-gray-500 text-sm">¿Aún no tenés cuenta? </span>

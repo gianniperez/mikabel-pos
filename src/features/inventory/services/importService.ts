@@ -25,11 +25,11 @@ interface SeedProduct {
 
 export const importProductsFromJson = async (
   jsonContent: string,
-  onProgress?: (processed: number, total: number) => void
+  onProgress?: (processed: number, total: number) => void,
 ) => {
   const data = JSON.parse(jsonContent);
   const products: SeedProduct[] = data.products || [];
-  
+
   if (products.length === 0) return { success: true, count: 0 };
 
   // 1. Obtener categorías existentes
@@ -40,8 +40,10 @@ export const importProductsFromJson = async (
   });
 
   // 2. Asegurar que todas las categorías del JSON existen
-  const uniqueCategories = Array.from(new Set(products.map(p => p.categoryId)));
-  
+  const uniqueCategories = Array.from(
+    new Set(products.map((p) => p.categoryId)),
+  );
+
   for (const catName of uniqueCategories) {
     if (!categoryMap.has(catName.toLowerCase())) {
       const newCatRef = doc(collection(firestore, "categories"));
@@ -69,9 +71,10 @@ export const importProductsFromJson = async (
       // pero si el usuario quiere "Actualizar", deberíamos buscar primero.
       // Dado que es un SEED, vamos a crear nuevos IDs para evitar problemas de colisión complejos
       // a menos que usemos el 'code' como ID de documento (peligroso si hay caracteres raros).
-      
+
       const productRef = doc(collection(firestore, "products"));
-      const categoryId = categoryMap.get(p.categoryId.toLowerCase()) || "Almacen";
+      const categoryId =
+        categoryMap.get(p.categoryId.toLowerCase()) || "Almacen";
 
       batch.set(productRef, {
         ...p,

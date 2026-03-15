@@ -20,7 +20,9 @@ export default function InventoryPage() {
   const { dbUser } = useAuthStore();
   const isAdmin = dbUser?.role === "admin";
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<import("@/lib/dexie").LocalProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<
+    import("@/lib/dexie").LocalProduct | null
+  >(null);
 
   const categories = useLiveQuery(() => db.categories.toArray()) || [];
   const productsCount = useLiveQuery(() => db.products.count()) || 0;

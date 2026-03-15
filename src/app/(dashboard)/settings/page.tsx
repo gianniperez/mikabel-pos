@@ -22,9 +22,11 @@ export default function SettingsPage() {
   const { dbUser } = useAuthStore();
   const {
     transferSurcharge,
+    cardSurcharge,
     defaultMinStock,
     adminPin,
     setTransferSurcharge,
+    setCardSurcharge,
     setDefaultMinStock,
     setAdminPin,
   } = useSettingsStore();
@@ -81,8 +83,14 @@ export default function SettingsPage() {
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
       <PageHeader
-        title="Configuración del Negocio"
+        title="Configuración General"
         description="Gestiona las reglas y seguridad de MikabelPOS."
+        actionButton={
+          <Button onClick={handleSave} className="w-full md:w-auto">
+            <Save className="w-5 h-5" />
+            Guardar Cambios
+          </Button>
+        }
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -106,6 +114,13 @@ export default function SettingsPage() {
                 setTransferSurcharge(Number(e.target.value) / 100)
               }
               helperText="Este porcentaje se sumará automáticamente a las ventas con método 'Transferencia'."
+            />
+            <Input
+              label="Recargo por Tarjeta (%)"
+              type="number"
+              value={cardSurcharge * 100}
+              onChange={(e) => setCardSurcharge(Number(e.target.value) / 100)}
+              helperText="Este porcentaje se sumará automáticamente a las ventas con método 'Tarjeta'."
             />
           </div>
         </div>
@@ -225,16 +240,6 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-end pt-4">
-        <Button
-          onClick={handleSave}
-          className="w-full md:w-auto px-8 py-4 text-lg font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all"
-        >
-          <Save className="w-5 h-5 mr-2" />
-          Guardar Cambios
-        </Button>
       </div>
     </div>
   );

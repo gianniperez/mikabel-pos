@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Menu, LogOut, X, Settings, UserPlus } from "lucide-react";
+import { Menu, LogOut, X, Settings, UserPlus, UserPen } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
@@ -78,7 +78,7 @@ export const TopBar = () => {
                 {user?.name || "Usuario"}
               </p>
               <p className="text-xs font-semibold text-gray-500 truncate capitalize">
-                {user?.role || "Empleado"}
+                {user?.role && user.role === "admin" ? "Admin" : "Operadora"}
               </p>
             </div>
           </div>
@@ -101,6 +101,20 @@ export const TopBar = () => {
                   className={`w-5 h-5 ${pathname === "/register" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}
                 />
                 Registrar Empleado
+              </Link>
+              <Link
+                href="/users"
+                onClick={() => setIsOpen(false)}
+                className={`group flex items-center gap-3 px-3 py-3 rounded-mikabel text-sm font-semibold transition-colors ${
+                  pathname === "/users"
+                    ? "bg-primary text-white"
+                    : "text-gray-500 hover:bg-primary-light/30 hover:text-primary"
+                }`}
+              >
+                <UserPen
+                  className={`w-5 h-5 ${pathname === "/users" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}
+                />
+                Gestión de Usuarios
               </Link>
               <Link
                 href="/settings"

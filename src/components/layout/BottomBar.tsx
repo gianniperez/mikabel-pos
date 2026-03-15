@@ -10,6 +10,8 @@ import {
   BarChart3,
 } from "lucide-react";
 
+import { useAuthStore } from "@/features/auth/stores";
+
 // The bottom bar is extremely limited in space, so we only show the absolute most important routes.
 // "Reportes" might be left for a 'more' menu or just desktop, but let's include it if it fits.
 const MOBILE_NAV = [
@@ -22,11 +24,19 @@ const MOBILE_NAV = [
 
 export const BottomBar = () => {
   const pathname = usePathname();
+  const { dbUser } = useAuthStore();
+
+  const visibleNav = MOBILE_NAV.filter((item) => {
+    if (item.href === "/reports") {
+      return dbUser?.role === "admin" || dbUser?.permissions?.view_reports;
+    }
+    return true;
+  });
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-safe">
       <ul className="flex justify-around items-center h-16">
-        {MOBILE_NAV.map((item) => {
+        {visibleNav.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));

@@ -14,17 +14,20 @@ export const useSessionTickets = () => {
 
   const fetchSessionTickets = useCallback(async () => {
     if (!activeSession) return;
-    
+
     setIsLoading(true);
     try {
       const q = query(
         collection(db, "sales"),
         where("sessionId", "==", activeSession.id),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
       );
-      
+
       const snap = await getDocs(q);
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PendingTicket[];
+      const data = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as PendingTicket[];
       setTickets(data);
     } catch (error) {
       console.error("Error fetching tickets:", error);

@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DebtsListPanel } from "@/features/debts/components/DebtsListPanel";
 import { AddCustomerModal } from "@/features/debts/components/AddCustomerModal";
+import { EditCustomerModal } from "@/features/debts/components/EditCustomerModal";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/Button";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuthStore } from "@/features/auth/stores";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function DebtsPage() {
   usePageMetadata({
@@ -31,7 +33,12 @@ export default function DebtsPage() {
     null,
   );
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: customers = [], isLoading } = useQuery({
@@ -51,10 +58,14 @@ export default function DebtsPage() {
     },
   });
 
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar a ${name}?`)) {
-      deleteMutate(id);
-    }
+  const handleDelete = () => {
+    if (!customerToDelete) return;
+    deleteMutate(customerToDelete.id);
+    setCustomerToDelete(null);
+  };
+
+  const confirmDelete = (id: string, name: string) => {
+    setCustomerToDelete({ id, name });
   };
 
   const filteredCustomers = customers.filter(
@@ -118,9 +129,13 @@ export default function DebtsPage() {
                     <p className="text-sm font-semibold text-gray-500">
                       {customer.totalDebt > 0 ? "Deuda Activa" : "Al día"}
                     </p>
-                    <div className="flex items-center font-bold gap-1 text-gray-500 text-sm">
+                    <div className="flex items-center font-bold gap-2 text-gray-500 text-sm">
                       <Phone className="h-4 w-4" />
-                      <span>+54 9 {customer.phone}</span>
+                      {customer.phone ? (
+                        <span>+54 9 {customer.phone}</span>
+                      ) : (
+                        <span className="text-gray-400">No registrado</span>
+                      )}
                     </div>
                     <div className="pt-2">
                       <span
@@ -138,13 +153,13 @@ export default function DebtsPage() {
                   <p className="cursor-pointer text-sm font-bold text-primary group-hover:text-primary-dark flex items-center gap-1 transition-all">
                     Ver Detalles
                   </p>
-                  {isAdmin && (
+                  {(isAdmin || dbUser?.permissions?.delete_customer) && (
                     <div className="flex items-center gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setCustomerToEdit(customer);
-                          setIsAddModalOpen(true);
+                          setIsEditModalOpen(true);
                         }}
                         className="cursor-pointer p-2 text-gray-400 hover:text-primary transition-colors"
                         title="Editar"
@@ -154,7 +169,7 @@ export default function DebtsPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(customer.id, customer.name);
+                          confirmDelete(customer.id, customer.name);
                         }}
                         className="cursor-pointer p-2 text-gray-400 hover:text-danger transition-colors"
                         title="Eliminar"
@@ -181,11 +196,26 @@ export default function DebtsPage() {
       {/* Modal Alta de Cliente */}
       <AddCustomerModal
         isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
+
+      {/* Modal Edición de Cliente */}
+      <EditCustomerModal
+        isOpen={isEditModalOpen}
         onClose={() => {
-          setIsAddModalOpen(false);
+          setIsEditModalOpen(false);
           setCustomerToEdit(null);
         }}
         customer={customerToEdit}
+      />
+
+      <ConfirmModal
+        isOpen={!!customerToDelete}
+        onClose={() => setCustomerToDelete(null)}
+        onConfirm={handleDelete}
+        title="Eliminar Cliente"
+        description={`¿Estás seguro de que deseas eliminar permanentemente a ${customerToDelete?.name}?`}
+        confirmText="Sí, Eliminar"
       />
     </div>
   );

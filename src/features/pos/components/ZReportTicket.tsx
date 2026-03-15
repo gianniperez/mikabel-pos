@@ -6,6 +6,9 @@ interface ZReportTicketProps {
   employeeId: string;
   openingAmount: number;
   totalMovements: number;
+  totalCashSales: number;
+  totalTransferSales: number;
+  totalCardSales: number;
   closingAmount: number;
   systemCalculated: number;
   difference: number;
@@ -21,6 +24,9 @@ export const ZReportTicket = React.forwardRef<
       employeeId,
       openingAmount,
       totalMovements,
+      totalCashSales,
+      totalTransferSales,
+      totalCardSales,
       closingAmount,
       systemCalculated,
       difference,
@@ -70,14 +76,24 @@ export const ZReportTicket = React.forwardRef<
               <span>${openingAmount.toFixed(2)}</span>
             </div>
 
-            <div className="flex justify-between">
-              <span>Ventas Efectivo:</span>
-              <span>$??.?? (Fase 4)</span>
+            <div className="flex justify-between text-[11px] italic">
+              <span>+ Ventas Efectivo:</span>
+              <span>${totalCashSales.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between text-[11px] italic">
+              <span>+ Ventas Transf.:</span>
+              <span>${totalTransferSales.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between text-[11px] italic">
+              <span>+ Ventas Tarjeta:</span>
+              <span>${totalCardSales.toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between">
-              <span>Egresos Caja:</span>
-              <span>$-{totalMovements.toFixed(2)}</span>
+              <span>- Egresos Caja:</span>
+              <span>${totalMovements.toFixed(2)}</span>
             </div>
 
             <div className="border-t border-dashed border-gray-400 my-1"></div>

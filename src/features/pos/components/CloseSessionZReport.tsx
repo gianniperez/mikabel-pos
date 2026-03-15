@@ -37,6 +37,9 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
     employeeId: string;
     openingAmount: number;
     totalMovements: number;
+    totalCashSales: number;
+    totalTransferSales: number;
+    totalCardSales: number;
     closingAmount: number;
     systemCalculated: number;
     difference: number;
@@ -67,9 +70,11 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
     setIsSubmitting(true);
 
     try {
-      // 1. CÁLCULO DE SISTEMA: Apertura - Egresos Acumulados (+ Ventas en Fase 4)
+      // 1. CÁLCULO DE SISTEMA: Apertura + Ventas Efectivo - Egresos
       const expectedSystemAmount =
-        activeSession.openingAmount - (activeSession.totalMovements || 0);
+        activeSession.openingAmount +
+        (activeSession.totalCashSales || 0) -
+        (activeSession.totalMovements || 0);
       const difference = data.closingAmount - expectedSystemAmount;
 
       const sessionRef = doc(db, "cash_sessions", activeSession.id);
@@ -89,6 +94,9 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
         employeeId: activeSession.employeeId,
         openingAmount: activeSession.openingAmount,
         totalMovements: activeSession.totalMovements || 0,
+        totalCashSales: activeSession.totalCashSales || 0,
+        totalTransferSales: activeSession.totalTransferSales || 0,
+        totalCardSales: activeSession.totalCardSales || 0,
         closingAmount: data.closingAmount,
         systemCalculated: expectedSystemAmount,
         difference: difference,
@@ -143,6 +151,9 @@ export const CloseSessionZReport = ({ onClose }: Props) => {
           employeeId={ticketData.employeeId}
           openingAmount={ticketData.openingAmount}
           totalMovements={ticketData.totalMovements}
+          totalCashSales={ticketData.totalCashSales}
+          totalTransferSales={ticketData.totalTransferSales}
+          totalCardSales={ticketData.totalCardSales}
           closingAmount={ticketData.closingAmount}
           systemCalculated={ticketData.systemCalculated}
           difference={ticketData.difference}

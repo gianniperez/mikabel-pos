@@ -76,7 +76,9 @@ export const PosProductGrid = () => {
               <div key={cat.id}>
                 <Button
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  variant={selectedCategoryId === cat.id ? "primary" : "outline"}
+                  variant={
+                    selectedCategoryId === cat.id ? "primary" : "outline"
+                  }
                   rounded="full"
                   className="rounded-full whitespace-nowrap py-2 text-sm transition-colors w-24"
                 >

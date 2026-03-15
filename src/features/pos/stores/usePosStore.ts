@@ -5,7 +5,7 @@ import { db as dexieDb } from "@/lib/dexie";
 import { useSettingsStore } from "../../admin/stores/useSettingsStore";
 
 // Tipos para el POS Backend-less (Zero Latency)
-export type PaymentMethod = "cash" | "transfer" | "debt";
+export type PaymentMethod = "cash" | "transfer" | "card" | "debt";
 
 export interface CartItem {
   product: LocalProduct;
@@ -26,6 +26,7 @@ export interface PendingTicket {
   splitPayments?: {
     cash: number;
     transfer: number;
+    card?: number;
     debt?: number; // Opcional por si en el futuro se quiere Fiado + Otro
   };
   timestamp: number;
@@ -103,11 +104,13 @@ const calculateCartTotals = (
   discount: number,
 ) => {
   const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-  
+
   // Usar el valor dinámico de la store de settings
   const settings = useSettingsStore.getState();
-  const surchargeRate = method === "transfer" ? settings.transferSurcharge : 0;
-  
+  let surchargeRate = 0;
+  if (method === "transfer") surchargeRate = settings.transferSurcharge;
+  if (method === "card") surchargeRate = settings.cardSurcharge;
+
   const surcharge = subtotal * surchargeRate;
   const total = Math.max(0, subtotal + surcharge - discount);
 

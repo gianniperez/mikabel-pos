@@ -34,4 +34,11 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { app, auth, db };
+// Secondary Firebase app for administrative tasks (like registering other users)
+// This prevents the current admin from being signed out when creating a new account.
+const secondaryApp =
+  getApps().find((a) => a.name === "secondary") ||
+  initializeApp(firebaseConfig, "secondary");
+const secondaryAuth = getAuth(secondaryApp);
+
+export { app, auth, db, secondaryAuth };

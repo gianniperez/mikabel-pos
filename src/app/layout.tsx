@@ -6,6 +6,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 import { AppProvider } from "@/providers/AppProvider";
 import { Toaster } from "sonner";
 import { OfflineBanner } from "@/components/OfflineBanner/OfflineBanner";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const viewport: Viewport = {
   themeColor: "#3543A2",
@@ -40,6 +41,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable}`}>
       <body className="font-sans bg-gray-50 text-gray-900 antialiased">
+        <ScrollToTop />
         <OfflineBanner />
         <AppProvider>{children}</AppProvider>
         <Toaster richColors position="top-right" />
