@@ -39,18 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => setMounted(true), 0);
 
     // 1. Manejar el resultado de Redirect si estamos volviendo de Google (PWA)
+    console.log("[Auth] Checking redirect result...");
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
           console.log("[Auth] Redirect login successful:", result.user.email);
-          // No necesitamos hacer nada más aquí, onAuthStateChanged se encargará
+          toast.success(`Sesión recuperada: ${result.user.email}`);
+        } else {
+          console.log("[Auth] No redirect result found");
         }
       })
       .catch((error) => {
         console.error("[Auth] Redirect login error:", error);
-        if (error.code !== "auth/no-auth-event") {
-          toast.error(`Error al volver del inicio de sesión: ${error.code}`);
-        }
+        toast.error(`Error en Redirección: ${error.code}`);
       });
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
