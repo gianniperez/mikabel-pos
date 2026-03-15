@@ -36,9 +36,17 @@ export const usePosSyncLoop = () => {
           if (!saleSnap.exists()) {
             const batch = writeBatch(db);
 
+            // 1.5. Calcular Costo Total del Ticket
+            const ticketTotalCost = ticket.items.reduce(
+              (acc: number, item: any) =>
+                acc + (item.product.costPrice || 0) * item.quantity,
+              0,
+            );
+
             // 1. Crear documento de Venta
             batch.set(saleRef, {
               ...ticket,
+              totalCost: ticketTotalCost, // Guardamos el costo en la venta también por seguridad
               createdAt: new Date(ticket.timestamp),
             });
 
@@ -60,6 +68,7 @@ export const usePosSyncLoop = () => {
             const sessionRef = doc(db, "cash_sessions", ticket.sessionId);
             const updateData: Record<string, unknown> = {
               totalMovements: increment(1),
+              totalCost: increment(ticketTotalCost), // Actualizamos el acumulado del turno
             };
 
             if (ticket.splitPayments) {

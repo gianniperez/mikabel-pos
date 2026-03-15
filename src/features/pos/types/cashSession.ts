@@ -11,6 +11,7 @@ export interface CashSession {
   totalCardSales: number;
   totalDebtSales: number;
   totalDebtPayments: number;
+  totalCost: number; // Nuevo: Acumulado de precio de costo de los productos vendidos
   closingAmount: number | null;
   systemCalculated: number | null;
   difference: number | null;

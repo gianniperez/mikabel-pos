@@ -78,7 +78,7 @@ Hemos diseñado un camino para que MikabelPOS siga creciendo y le dé más contr
 - [✅] **🔐 Control Fino de Permisos**: Usted podrá habilitar funciones específicas a sus empleadas (ej. corregir un stock mal cargado) de forma momentánea, manteniendo la seguridad pero ganando agilidad.
 - [✅] **📦 Prioridad de Reposición**: Filtros inteligentes en el inventario para ver primero lo que se está agotando y saber qué comprar sin revisar góndola por góndola.
 - [✅] **📝 Control de Pérdidas**: Registrar cuándo un producto se rompe, se vence o se consume en el local, para saber exactamente por qué falta mercadería.
-- [ ] **💰 Ganancia Real (Margen Neto)**: Ver no solo cuánto vendió, sino cuánto le quedó de ganancia limpia restando el costo de la mercadería.
+- [✅] **💰 Ganancia Real (Margen Neto)**: Ver no solo cuánto vendió, sino cuánto le quedó de ganancia limpia restando el costo de la mercadería.
 - [ ] **🚚 Gestión de Proveedores**: Registrar cuánto dinero le sale a cada distribuidor y controlar los pagos pendientes a proveedores.
 - [ ] **⚡ Análisis de Horas Pico**: Un gráfico que le muestre a qué hora se llena el local para saber cuándo necesita más ayuda o cuándo puede reponer stock tranquilo.
 
