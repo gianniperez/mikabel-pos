@@ -8,6 +8,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Plus } from "lucide-react";
+import { ProductImage } from "@/components/ProductImage";
 
 export const PosProductGrid = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,46 +101,57 @@ export const PosProductGrid = () => {
             No hay productos
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3">
             {products.map((product: LocalProduct) => (
               <Card
                 key={product.id}
                 variant="interactive"
-                padding="small"
+                padding="none"
                 onClick={() => addToCart(product, 1)}
-                className="relative flex flex-col items-center justify-center p-3 h-36 text-center group hover:bg-secondary hover:border-secondary transition-all duration-200"
+                className="relative flex flex-col p-2 text-center group hover:bg-secondary hover:border-secondary transition-all duration-200"
               >
                 {/* Plus Icon on Hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
                   <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
                     <Plus className="w-8 h-8 text-white" />
                   </div>
                 </div>
 
                 {/* Content wrapper for blurring or fading */}
-                <div className="w-full h-full flex flex-col items-center justify-center group-hover:opacity-20 transition-opacity duration-200">
+                <div className="w-full h-full flex flex-col items-center group-hover:opacity-20 transition-opacity duration-200">
                   {/* Indicador Bulk */}
                   {product.bulkQuantity && product.bulkPrice && (
-                    <span className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] font-black px-1.5 py-0.5 rounded-bl-lg rounded-tr-xl">
+                    <span className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[9px] font-black px-1.5 py-0.5 rounded-bl-lg rounded-tr-xl z-30">
                       MAYOR
                     </span>
                   )}
 
-                  <span className="text-[10px] font-bold text-gray-400 mb-1 w-full truncate">
-                    {product.code}
-                  </span>
+                  {/* Imagen del Producto */}
+                  <div className="w-full h-24 mb-2 overflow-hidden rounded-lg relative">
+                    <ProductImage
+                      src={product.photoUrl}
+                      alt={product.name}
+                      className="w-full h-full"
+                    />
+                  </div>
 
-                  <h3 className="text-sm font-bold text-gray-800 leading-tight line-clamp-2 mb-1 w-full">
-                    {product.name}
-                  </h3>
-                  <h3 className="text-[10px] font-bold text-gray-500 leading-tight line-clamp-1 mb-2 w-full">
-                    {product.brand}
-                  </h3>
-
-                  <div className="mt-auto w-full">
-                    <span className="text-lg font-black text-primary group-hover:text-white transition-colors">
-                      ${product.salePrice}
+                  <div className="w-full text-center">
+                    <span className="text-[10px] font-bold text-gray-400 block truncate">
+                      {product.code}
                     </span>
+
+                    <h3 className="text-xs font-bold text-gray-800 leading-tight line-clamp-1 mb-0.5">
+                      {product.name}
+                    </h3>
+                    <h3 className="text-xs font-bold text-gray-500 leading-tight line-clamp-1 mb-1">
+                      {product.brand}
+                    </h3>
+
+                    <div className="mt-1">
+                      <span className="text-base font-black text-primary group-hover:text-white transition-colors">
+                        ${product.salePrice}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </Card>

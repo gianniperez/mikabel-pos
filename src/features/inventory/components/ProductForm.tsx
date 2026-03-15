@@ -12,9 +12,17 @@ import { db as dexie } from "@/lib/dexie";
 import { toast } from "sonner";
 import { type LocalProduct } from "@/lib/dexie";
 import { clsx } from "clsx";
-import { Plus, Check, X, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Check,
+  X,
+  Loader2,
+  Image as ImageIcon,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import { ProductImage } from "@/components/ProductImage";
 
 const optionalNumber = z.preprocess(
   (val) => (val === "" || val === undefined || val === null ? null : val),
@@ -41,6 +49,7 @@ const productSchema = z.object({
     })
     .min(0, "El stock no puede ser negativo"),
   minStock: optionalNumber,
+  photoUrl: z.string().optional().nullable(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -81,8 +90,48 @@ export const ProductForm = ({
           stock: 0,
           minStock: 3,
           categoryId: "",
+          photoUrl: null,
         },
   });
+
+  const photoUrl = watch("photoUrl");
+
+  const openUploadWidget = () => {
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dzp4idk6h", // Placeholder name based on common user ones or prompt
+        uploadPreset:
+          process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ||
+          "mikabel_products",
+        sources: ["local", "camera"],
+        multiple: false,
+        cropping: true,
+        croppingAspectRatio: 1,
+        showSkipCropButton: false,
+        theme: "minimal",
+        language: "es",
+        text: {
+          es: {
+            menu: { files: "Mis Archivos", camera: "Cámara" },
+            local: {
+              browse: "Buscar en mi PC",
+              dd_title_single: "Arrastra tu foto aquí",
+            },
+          },
+        },
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          setValue("photoUrl", result.info.secure_url, {
+            shouldValidate: true,
+          });
+          toast.success("Imagen cargada");
+        }
+      },
+    );
+    widget.open();
+  };
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -403,6 +452,46 @@ export const ProductForm = ({
             },
           })}
         />
+      </div>
+
+      {/* Foto del Producto */}
+      <div className="p-4 bg-white rounded-xl border-2 border-dashed border-gray-100 space-y-4">
+        <label className="text-sm font-bold text-gray-700 block">
+          Imagen del Producto
+        </label>
+        <div className="flex items-center gap-4">
+          <div className="relative w-32 h-32 shrink-0 group">
+            <ProductImage
+              src={photoUrl}
+              alt="Vista previa"
+              className="w-full h-full object-cover border border-gray-100"
+            />
+            {photoUrl && (
+              <button
+                type="button"
+                onClick={() => setValue("photoUrl", null)}
+                className="absolute -top-2 -right-2 bg-danger text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            <p className="text-xs text-gray-500">
+              Sube una foto clara del producto para que las vendedoras lo
+              reconozcan fácilmente en el POS.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={openUploadWidget}
+              className="w-auto py-2 px-4 text-xs h-auto"
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              {photoUrl ? "Cambiar Imagen" : "Subir Imagen"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Bulk Pricing (Optional) */}

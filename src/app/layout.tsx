@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 import { AppProvider } from "@/providers/AppProvider";
@@ -45,6 +46,10 @@ export default function RootLayout({
         <OfflineBanner />
         <AppProvider>{children}</AppProvider>
         <Toaster richColors position="top-right" />
+        <Script
+          src="https://upload-widget.cloudinary.com/global/all.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

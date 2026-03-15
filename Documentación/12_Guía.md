@@ -84,7 +84,7 @@ Hemos diseñado un camino para que MikabelPOS siga creciendo y le dé más contr
 
 ### Prioridad Media
 
-- [ ] **🖼️ Fotos de Productos**: Galería visual para reconocer cada artículo con una imagen, ideal para agilizar la venta y evitar confusiones con productos similares.
+- [✅] **🖼️ Fotos de Productos**: Galería visual para reconocer cada artículo con una imagen, ideal para agilizar la venta y evitar confusiones con productos similares.
 - [ ] **📈 Monitor de Deudas**: Un gráfico que le avise si la deuda de los clientes está creciendo más rápido de lo que están pagando (alerta de flujo de caja).
 - [ ] **📲 Cobro por WhatsApp**: Un botón para enviarle al cliente su estado de cuenta por WhatsApp con un solo click.
 

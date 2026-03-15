@@ -23,6 +23,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { cn } from "@/lib/utils";
 import { StockAdjustmentModal } from "./StockAdjustmentModal";
 import { logStockMovement } from "../api/stockMovements";
+import { ProductImage } from "@/components/ProductImage";
 
 const columnHelper = createColumnHelper<LocalProduct>();
 
@@ -124,19 +125,26 @@ export const InventoryTable = ({
         columnHelper.accessor("name", {
           header: "Producto",
           cell: (info) => (
-            <div className="flex flex-col">
-              <span className="text-xs text-gray-500">
-                {categoryMap.get(info.row.original.categoryId) as string}
-              </span>
-              <span className="font-semibold text-gray-900 pt-2">
-                {info.getValue()}
-              </span>
-              <span className="font-semibold text-gray-900 pb-2">
-                {info.row.original.brand}
-              </span>
-              <span className="text-xs text-gray-500">
-                Cód: {info.row.original.code}
-              </span>
+            <div className="flex items-center gap-4">
+              <ProductImage
+                src={info.row.original.photoUrl}
+                alt={info.row.original.name}
+                className="w-12 h-12 rounded-xl shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500">
+                  {categoryMap.get(info.row.original.categoryId) as string}
+                </span>
+                <span className="font-semibold text-gray-900 pt-1">
+                  {info.getValue()}
+                </span>
+                <span className="text-xs font-semibold text-gray-700">
+                  {info.row.original.brand}
+                </span>
+                <span className="text-xs text-gray-500">
+                  Cód: {info.row.original.code}
+                </span>
+              </div>
             </div>
           ),
         }),
@@ -208,9 +216,7 @@ export const InventoryTable = ({
                   </div>
                   {canEditStock && (
                     <button
-                      onClick={() =>
-                        handleStockChange(info.row.original, step)
-                      }
+                      onClick={() => handleStockChange(info.row.original, step)}
                       className="cursor-pointer p-1 hover:bg-gray-50 hover:text-success rounded transition-all"
                     >
                       <Plus className="w-4 h-4" />
@@ -339,28 +345,35 @@ export const InventoryTable = ({
                 >
                   {/* Top Row: Category, Stock Pill, Unit */}
                   <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-gray-500">
-                        {catName}
-                      </span>
-                      <span className="font-bold text-gray-900 text-lg leading-tight line-clamp-2">
-                        {product.name}
-                      </span>
-                      {product.brand && (
-                        <span className="font-semibold text-gray-700 text-sm">
-                          {product.brand}
+                    <div className="flex gap-3">
+                      <ProductImage
+                        src={product.photoUrl}
+                        alt={product.name}
+                        className="w-16 h-16 rounded-xl shrink-0"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-gray-500">
+                          {catName}
                         </span>
-                      )}
-                      <span className="text-xs font-semibold text-gray-500 mt-1">
-                        Cód: {product.code}
-                      </span>
+                        <span className="font-bold text-gray-900 text-lg leading-tight line-clamp-2">
+                          {product.name}
+                        </span>
+                        {product.brand && (
+                          <span className="font-semibold text-gray-700 text-sm">
+                            {product.brand}
+                          </span>
+                        )}
+                        <span className="text-xs font-semibold text-gray-500 mt-1">
+                          Cód: {product.code}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-end gap-1">
                       <div className="flex items-center gap-2">
                         <div
                           className={clsx(
-                            "px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1",
+                            "min-w-20 justify-center px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1",
                             isCritical
                               ? "bg-danger/10 text-danger"
                               : isLow
@@ -385,9 +398,7 @@ export const InventoryTable = ({
                       </span>
                       <div className="flex items-center gap-4">
                         <button
-                          onClick={() =>
-                            handleStockChange(product, -step)
-                          }
+                          onClick={() => handleStockChange(product, -step)}
                           className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-danger active:scale-95 transition-transform"
                         >
                           <Minus className="w-5 h-5" />
@@ -396,9 +407,7 @@ export const InventoryTable = ({
                           {product.stock}
                         </span>
                         <button
-                          onClick={() =>
-                            handleStockChange(product, step)
-                          }
+                          onClick={() => handleStockChange(product, step)}
                           className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm text-success active:scale-95 transition-transform"
                         >
                           <Plus className="w-5 h-5" />
