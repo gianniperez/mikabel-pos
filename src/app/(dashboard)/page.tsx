@@ -4,6 +4,7 @@ import { useAuthStore } from "@/features/auth/stores";
 import {
   DashboardSummary,
   GlobalBanner,
+  ActiveShiftsBoard,
 } from "@/features/dashboard/components";
 import { usePageMetadata } from "@/hooks/usePageMetadata";
 
@@ -22,6 +23,9 @@ export default function DashboardHomePage() {
         description="Este es el resumen operativo de hoy."
       />
       <GlobalBanner />
+
+      {user?.role === "admin" && <ActiveShiftsBoard />}
+
       <DashboardSummary />
     </main>
   );

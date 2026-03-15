@@ -142,8 +142,8 @@ export const RegisterForm = () => {
           type="select"
           error={errors.role?.message}
           options={[
-            { label: "Empleado/a", value: "employee" },
-            { label: "Administrador", value: "admin" },
+            { label: "Operadora", value: "employee" },
+            { label: "Admin", value: "admin" },
           ]}
         />
 
