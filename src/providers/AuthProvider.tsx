@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, getRedirectResult } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuthStore } from "@/features/auth/stores";
@@ -37,6 +37,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Usamos setTimeout para evitar el warning de cascading renders
     const timer = setTimeout(() => setMounted(true), 0);
+
+    // 1. Manejar el resultado de Redirect si estamos volviendo de Google (PWA)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          console.log("[Auth] Redirect login successful:", result.user.email);
+          // No necesitamos hacer nada más aquí, onAuthStateChanged se encargará
+        }
+      })
+      .catch((error) => {
+        console.error("[Auth] Redirect login error:", error);
+        if (error.code !== "auth/no-auth-event") {
+          toast.error(`Error al volver del inicio de sesión: ${error.code}`);
+        }
+      });
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
