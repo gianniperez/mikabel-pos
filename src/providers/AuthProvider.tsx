@@ -16,6 +16,7 @@ const DEFAULT_EMPLOYEE_PERMISSIONS: UserPermissions = {
   edit_product: false,
   delete_customer: false,
   view_reports: false,
+  view_suppliers: false,
 };
 
 const DEFAULT_ADMIN_PERMISSIONS: UserPermissions = {
@@ -24,6 +25,7 @@ const DEFAULT_ADMIN_PERMISSIONS: UserPermissions = {
   edit_product: true,
   delete_customer: true,
   view_reports: true,
+  view_suppliers: true,
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

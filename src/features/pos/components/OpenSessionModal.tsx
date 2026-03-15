@@ -67,6 +67,7 @@ export const OpenSessionModal = ({ onClose }: Props) => {
         totalCardSales: 0,
         totalDebtSales: 0,
         totalDebtPayments: 0,
+        totalCost: 0,
         closingAmount: null,
         systemCalculated: null,
         difference: null,
