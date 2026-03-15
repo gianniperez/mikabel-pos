@@ -105,6 +105,10 @@ export const LoginForm = () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      
+      // Asegurar persistencia local para que la sesión sobreviva al redirect de la PWA
+      await setPersistence(auth, browserLocalPersistence);
+
       const isStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as any).standalone;
@@ -112,7 +116,7 @@ export const LoginForm = () => {
       let result;
       if (isStandalone) {
         await signInWithRedirect(auth, provider);
-        return; // El flujo continúa después del redirect
+        return; 
       } else {
         result = await signInWithPopup(auth, provider);
         toast.success(`Bienvenido/a`);
