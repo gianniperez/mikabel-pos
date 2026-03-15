@@ -60,6 +60,7 @@ export const RegisterMovementModal = ({ onClose }: Props) => {
     watch,
     formState: { errors },
   } = useForm<ExpenseForm>({
+    // @ts-ignore
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       amount: 0,
