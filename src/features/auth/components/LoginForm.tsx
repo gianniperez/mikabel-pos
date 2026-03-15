@@ -103,25 +103,39 @@ export const LoginForm = () => {
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
+    localStorage.setItem("auth_debug_last_attempt", new Date().toISOString());
+    localStorage.setItem("auth_debug_status", "starting_google_flow");
+
     try {
       const provider = new GoogleAuthProvider();
       
-      // Asegurar persistencia local para que la sesión sobreviva al redirect de la PWA
+      // Asegurar persistencia local
       await setPersistence(auth, browserLocalPersistence);
 
       const isStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as any).standalone;
+      
+      // En Android, los Popups suelen funcionar mejor que los Redirects en PWA
+      // iOS sí requiere Redirect porque bloquea Popups en modo standalone
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const useRedirect = isStandalone && isIOS;
+
+      localStorage.setItem("auth_debug_use_redirect", String(useRedirect));
 
       let result;
-      if (isStandalone) {
+      if (useRedirect) {
+        localStorage.setItem("auth_debug_status", "calling_redirect");
         await signInWithRedirect(auth, provider);
         return; 
       } else {
+        localStorage.setItem("auth_debug_status", "calling_popup");
         result = await signInWithPopup(auth, provider);
+        localStorage.setItem("auth_debug_status", "popup_success");
         toast.success(`Bienvenido/a`);
       }
     } catch (error: any) {
+      localStorage.setItem("auth_debug_status", "error_" + error.code);
       console.error("Error en Google Login:", error);
 
       if (error.code === "auth/account-exists-with-different-credential") {

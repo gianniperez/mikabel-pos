@@ -39,18 +39,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => setMounted(true), 0);
 
     // 1. Manejar el resultado de Redirect si estamos volviendo de Google (PWA)
-    console.log("[Auth] Checking redirect result...");
+    const debugStatus = localStorage.getItem("auth_debug_status");
+    if (debugStatus) {
+      console.log("[Auth] Current debug status:", debugStatus);
+    }
+
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
-          console.log("[Auth] Redirect login successful:", result.user.email);
+          localStorage.setItem("auth_debug_status", "redirect_success_handled");
           toast.success(`Sesión recuperada: ${result.user.email}`);
         } else {
-          console.log("[Auth] No redirect result found");
+          if (debugStatus === "calling_redirect") {
+            toast.info("Procesando retorno de Google...");
+            localStorage.setItem("auth_debug_status", "redirect_no_result_found");
+          }
         }
       })
       .catch((error) => {
-        console.error("[Auth] Redirect login error:", error);
+        localStorage.setItem("auth_debug_status", "redirect_error_" + error.code);
         toast.error(`Error en Redirección: ${error.code}`);
       });
 
