@@ -1,6 +1,6 @@
-# Resumen Ejecutivo de Avance: Mikabel App (Fases 1 a 6 - MVP Completo)
+# Resumen Ejecutivo de Avance: Mikabel App (Fases 1 a 7)
 
-Este documento resume de manera amigable e integrada todo lo que hemos construido en **Mikabel App**, convirtiendo la idea original en un sistema robusto, rápido y seguro. Estamos actualmente con un MVP (Mínimo Producto Viable) 100% operativo.
+Este documento resume de manera amigable e integrada todo lo que hemos construido en **Mikabel App**, convirtiendo la idea original en un sistema robusto, rápido y seguro. Estamos actualmente con un MVP 100% operativo y un bloque significativo de mejoras Post-MVP implementadas.
 
 ---
 
@@ -25,7 +25,7 @@ Le dimos un "candado" a la terminal de ventas. El objetivo principal de esta fas
 
 - **Apertura Estricta:** Si no hay "Turno Activo", la pantalla de la caja chica (`/pos`) no funciona, muestra un panel de bloqueo hasta que alguien diga "Abro mi turno con X pesos de cambio inicial".
 - **Control de Egresos:** Durante el día, si se saca dinero para pagarle al de los maples de huevo, el cajero debe registrar ese egreso, y el sistema se encargará solo de restarlo de las matemáticas.
-- **Cierre de Caja Ciego (Z):** Al terminar la jornada, se le exige al empleado que cuente sus billetes a mano y declare cuánto dinero entrega. El sistema (sólo internamente) calcula lo que **debería haber** basándose en lo que vendió, y le emite un **Ticket de Faltantes/Sobrantes** de manera automática antes de bloquearse nuevamente.
+- **Cierre de Caja Ciego (Z):** Al terminar la jornada, se le exige al empleado que cuente sus billetes a mano y declare cuánto dinero entrega. El sistema calcula lo que **debería haber** basándose en lo que vendió, y le emite un **Ticket de Faltantes/Sobrantes** antes de bloquearse nuevamente.
 
 ## ⚡ Fase 4: Terminal de Ventas POS Ininterrumpida (Completada)
 
@@ -34,28 +34,48 @@ Esta es la fase joya del sistema: el Mostrador de atención al público, pensado
 - **Interfaz de Alta Velocidad (Pad Visual):** Pantalla partida estratégicamente. A la izquierda botones gigantes con los productos al toque, y a la derecha el ticket que se va construyendo.
 - **Cálculo Inmediato y Ofertas (Bulk Pricing):** Si llevás 3 chocolates que tenían oferta armada, el sistema detecta que llegaste a los 3 y te aplica instántaneamente el descuento al subtotal sin pensar.
 - **Gestor Financiero de Recargos:** El total ya no es "fijo". Si el cajero toca el botón cobrar y selecciona "Transferencia", el ticket entero re-calcula un 10% de recargo visible al instante antes de imprimir.
-- **Receptor Láser Nativo:** Toda la pantalla es un "micrófono" para la pistola láser que escanea productos. No hace falta clickear en ningún lado; el cajero pistolea el código de barras y el ítem entra al ticket sin frenar la vista del trabajador.
-- **Cobro Optimista (¡Chau Spinners!):** Cuando apretan "Cobrar", Mikabel asume que todo internet funcionará de diez. Succiona la venta, vacía el carrito en 0 segundos, levanta un Ticket Térmico en pantalla para la ticketera USB, y despide al cliente... Mientras tanto, por detrás y sin molestar, se pelea con la nube para descontar el `stock` de los productos del servidor central e incrementarle las cuentas y caudales a la caja.
-- **Auditoría Administradora (Anulaciones):** Y si todo lo de arriba falló porque se equivocaron, el dueño (con su superpoder) tiene el historial de ventas del día en la barra superior. Puede apretar un botón "Anular" y el sistema devuelve las papas fritas a la góndola digital y quita el dinero mal cobrado del arqueo que se está llevando a cabo hoy.
-- **Auditoría de Quality Assurance Fases 1-4:** Se ejecutó un intenso escáner anti-bugs al finalizar la fase. Gracias a ello sellamos la persistencia en caché de las sesiones para que los empleados no "hereden" datos de otros cajeros en Logout. Y sobre todo, logramos blindar el Pos Offline creando el "Guardian de Sincronía" (`PosSyncLoop`); este es un robot mudo que vigila si perdiste internet, guardando e intentando inyectar tus tickets nuevamente cada 15 segundos hacia Firestore sin avisar molestias al cajero y sin perder descuadres fiscales.
+- **Receptor Láser Nativo:** Toda la pantalla es un "micrófono" para la pistola láser. El cajero pistolea el código de barras y el ítem entra al ticket sin frenar la vista.
+- **Cobro Optimista (¡Chau Spinners!):** Mikabel asume que el internet funcionará. Vacía el carrito en 0 segundos, levanta un Ticket Térmico en pantalla y despide al cliente. Por detrás, sin molestar, descuenta el `stock` e incrementa los caudales de la caja.
+- **Auditoría Administradora (Anulaciones):** El dueño puede anular ventas devolviendo el stock a la góndola digital.
+- **Guardian de Sincronía (`PosSyncLoop`):** Robot mudo que vigila si perdiste internet, guardando e inyectando tickets cada 15 segundos hacia Firestore sin avisar molestias al cajero.
 
 ## 📋 Fase 5: Libreta Barrial (Cuentas Corrientes) (Completada)
 
 Con el flujo base de cobro ya cerrado y blindado, dotamos al sistema de la habilidad legal para emitir "Fiados" autorizados.
 
-- **Integración Optimista:** La venta por Fiado es instantánea y convive perfectamente en el POS. Al clickear "Libreta", el cajero elige a un cliente registrado (Vecino) y el total se acumula como deuda, sin arruinar el recuento de efectivo del cajón físico.
-- **Panel Administrativo (`/debts`):** Una grilla robusta para seguirle el paso a los fiados. Con un click en un usuario, hay un sidebar con botones para "Abonar" la cuenta completa o parcialmente.
-- **Arqueo Protegido:** Un ingreso de libreta físico exige tener un turno abierto (para inyectar esos billetes al balance del negocio). Nadie puede perdonar deuda sin el consentimiento contable del software.
+- **Integración Optimista:** La venta por Fiado es instantánea. El cajero elige a un cliente registrado y el total se acumula como deuda, sin arruinar el recuento de efectivo del cajón físico.
+- **Panel Administrativo (`/debts`):** Grilla robusta para seguir los fiados con sidebar para abonar parcial o totalmente.
+- **Arqueo Protegido:** Un ingreso de libreta físico exige tener un turno abierto.
 
 ## 📊 Fase 6: Inteligencia de Negocio y Resiliencia (Completada)
 
-Dotamos a Mikabel de analíticas cruciales para la toma de decisiones empresariales y blindaje físico de internet en la caja.
+Dotamos a Mikabel de analíticas cruciales para la toma de decisiones empresariales.
 
-- **KPIs en Tiempo Real:** Dashboard financiero resumiendo ingresos, billetes físicos, transferencias y dinero emitido en fiados. Todo condensado y agregable.
-- **Auditoría de Cajas Históricas:** Una tabla de Arqueos permite al dueño ver todas las cajas del mes, cruzando aperturas vs. cobros digitales vs. diferencias (sobrantes y faltantes). Si a un empleado le falta caja frecuente, salta allí.
+- **KPIs en Tiempo Real:** Dashboard financiero resumiendo ingresos, billetes físicos, transferencias y dinero emitido en fiados.
+- **Auditoría de Cajas Históricas:** Tabla de Arqueos para revisar la performance de cada empleado y sus márgenes de faltantes.
 - **Alertas de Inventario:** Detección de productos acercándose a 0 (`stock <= minStock`) para reposición.
-- **Soporte Offline Nativo:** Cinta adhesiva carmesí global (`OfflineBanner`) que detecta y reporta microcortes de Internet. La caja y Dexie siguen funcionando localmente en un bucle optimista que empuja las ventas ni bien regrese la señal, sin que el cajero deba asustarse.
+- **Soporte Offline Nativo:** `OfflineBanner` carmesí que detecta microcortes. Dexie sigue funcionando localmente en un bucle optimista que empuja las ventas ni bien regrese la señal.
+
+## 🚀 Fase 7: Gestión Avanzada e Inteligencia Visual (Completada)
+
+El salto de un POS a una plataforma de gestión integral para minimarket. Se implementaron siete mejoras Post-MVP en una sola sesión de trabajo el 15/03/2026.
+
+- **🔐 Control Fino de Permisos:** El dueño puede activar o desactivar capacidades específicas por empleada desde la pantalla de Usuarios, sin necesidad de cambiar su rol completo. Los cambios se aplican en tiempo real.
+
+- **📦 Prioridad de Reposición:** Nuevo filtro en el inventario que ordena automáticamente los productos con stock crítico primero. Permite generar la lista de compras del día en segundos.
+
+- **📝 Control de Pérdidas:** Ajuste de Stock con categorías (Rotura, Vencimiento, Consumo Interno) y campo de observaciones. Los empleados necesitan PIN de admin para ajustes negativos. Los movimientos quedan auditados en el historial.
+
+- **💰 Ganancia Real (Margen Neto):** El modelo de `CashSession` fue extendido con `totalCost`. Al cobrar, se acumula el costo de cada producto vendido. Los reportes ahora muestran el margen neto real (Ventas - Costo = Margen).
+
+- **🚚 Gestión de Proveedores (`/suppliers`):** Nueva sección para registrar proveedores, cargar compras/pagos (efectivo, transferencia, fiado) y visualizar el saldo deudor pendiente. Integrada con los egresos de caja para arqueos exactos.
+
+- **⚡ Análisis de Horas Pico:** Histograma de ventas por hora en el panel de Reportes con rango 8:00 a 23:00 hs. Identifica los momentos de mayor flujo para reforzar personal o reponer mercadería.
+
+- **🖼️ Fotos de Productos:** Integración con Cloudinary para subir y mostrar imágenes. Componente reutilizable `ProductImage` con `next/image` (carga diferida, optimización automática) y placeholder `ImageOff`. Visible como miniatura en el Inventario y como tarjeta cuadrada 1:1 en la Terminal POS.
 
 ---
 
-Con esto, consolidamos el núcleo del Point of Sale. Mikabel es oficialmente una **plataforma ininterrumpible**.
+Con esto, Mikabel evolucionó de un **POS completo** a una **plataforma de gestión integral** para minimarket barrial.
+
+---
