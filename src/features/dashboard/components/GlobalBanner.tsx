@@ -109,7 +109,7 @@ export const GlobalBanner = () => {
     <>
       <div
         className={cn(
-          "relative flex flex-col justify-center h-24 overflow-hidden bg-linear-to-r rounded-mikabel shadow-md border border-primary-dark/10 group",
+          "relative flex flex-col justify-center min-h-24 overflow-hidden bg-linear-to-r rounded-mikabel shadow-md border border-primary-dark/10 group",
           currentVariant.bg,
         )}
       >

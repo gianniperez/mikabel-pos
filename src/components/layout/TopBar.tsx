@@ -18,7 +18,7 @@ export const TopBar = () => {
 
   return (
     <>
-      <header className="md:hidden h-14 bg-background-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30">
+      <header className="md:hidden h-14 bg-background-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <Image src="/isologo.png" alt="Mikabel" width={24} height={24} />
           <h1 className="text-lg font-extrabold text-primary-dark tracking-tight">
@@ -36,14 +36,14 @@ export const TopBar = () => {
       {/* Mobile Drawer Overlay */}
       {isOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-100 bg-black/20 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Mobile Drawer Menu */}
       <div
-        className={`md:hidden fixed inset-y-0 right-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`md:hidden fixed inset-y-0 right-0 z-150 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -84,7 +84,7 @@ export const TopBar = () => {
           </div>
 
           {user?.role === "admin" && (
-            <div className="mb-6">
+            <div className="mb-4 space-y-2">
               <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 space-y-1">
                 Administración
               </h3>

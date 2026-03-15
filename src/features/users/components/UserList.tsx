@@ -188,30 +188,47 @@ export const UserList = () => {
         {users.map((user) => (
           <Card key={user.uid} className="p-4 space-y-4">
             <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-lg">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
+              <div className="flex items-center gap-2">
+                {user?.photoURL ? (
+                  <Image
+                    src={user?.photoURL || ""}
+                    alt={user?.name || "Usuario"}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <div className="w-[40px] h-[40px] rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                )}
                 <div className="flex flex-col">
                   <span className="font-bold text-gray-900">{user.name}</span>
-                  <span className="text-xs text-gray-500">{user.email}</span>
+                  <span className="text-[10px] text-gray-500 overflow-hidden text-ellipsis w-44">
+                    {user.email}
+                  </span>
                 </div>
               </div>
               <div
                 className={clsx(
-                  "px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tight flex items-center gap-1",
+                  "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black",
                   user.role === "admin"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-gray-100 text-gray-600",
+                    ? "bg-primary-light/20 text-primary"
+                    : "bg-secondary-light/30 text-secondary-dark",
                 )}
               >
-                {user.role === "admin" ? "Admin" : "Empleado"}
+                {user.role === "admin" ? (
+                  <ShieldCheck className="w-4 h-4" />
+                ) : (
+                  <Shield className="w-4 h-4" />
+                )}
+                {user.role === "admin" ? "Admin" : "Operadora"}
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Permisos activos
+              <h4 className="text-xs font-bold text-gray-400 uppercase">
+                Permisos Extra
               </h4>
               <div className="flex gap-1 flex-wrap">
                 {user.permissions &&
