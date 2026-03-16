@@ -135,9 +135,11 @@ export const InventoryTable = ({
                 <span className="text-xs text-gray-500">
                   {categoryMap.get(info.row.original.categoryId) as string}
                 </span>
-                <span className="font-semibold text-gray-900 pt-1">
-                  {info.getValue()}
-                </span>
+                <EditableNameCell
+                  productId={info.row.original.id}
+                  initialName={info.getValue()}
+                  canEdit={isAdmin}
+                />
                 <span className="text-xs font-semibold text-gray-700">
                   {info.row.original.brand}
                 </span>
@@ -685,6 +687,96 @@ const EditablePriceCell = ({
     >
       <span>${(initialPrice || 0).toLocaleString()}</span>
       <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </button>
+  );
+};
+
+// --- Edición inline de nombre (solo admin) ---
+
+const EditableNameCell = ({
+  productId,
+  initialName,
+  canEdit,
+}: {
+  productId: string;
+  initialName: string;
+  canEdit: boolean;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(initialName);
+
+  const handleUpdate = async () => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setValue(initialName);
+      setIsEditing(false);
+      return;
+    }
+
+    if (trimmed === initialName) {
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      const productRef = doc(dbFirestore, "products", productId);
+      await updateDoc(productRef, {
+        name: trimmed,
+        updatedAt: new Date(),
+      });
+      toast.success("Nombre actualizado");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error actualizando nombre:", error);
+      const fbError = error as { code?: string; message?: string };
+      if (
+        fbError.code === "not-found" ||
+        fbError.message?.includes("not found")
+      ) {
+        toast.error("El producto ya no existe.");
+        await db.products.delete(productId);
+      } else {
+        toast.error("Error al actualizar nombre");
+        setValue(initialName);
+      }
+      setIsEditing(false);
+    }
+  };
+
+  if (!canEdit) {
+    return (
+      <span className="font-semibold text-gray-900 pt-1">{initialName}</span>
+    );
+  }
+
+  if (isEditing) {
+    return (
+      <input
+        autoFocus
+        type="text"
+        className="mt-1 px-2 py-0.5 font-semibold text-gray-900 border-2 border-primary rounded-lg focus:outline-none text-sm w-48"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={handleUpdate}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleUpdate();
+          if (e.key === "Escape") {
+            setValue(initialName);
+            setIsEditing(false);
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setIsEditing(true)}
+      className="group flex items-center gap-1 font-semibold text-gray-900 hover:text-primary transition-colors cursor-pointer pt-1 text-left"
+      title="Click para editar nombre"
+    >
+      <span>{initialName}</span>
+      <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </button>
   );
 };
