@@ -101,7 +101,9 @@ export default function SettingsPage() {
       }
       // Borrar Dexie local también
       await db.products.clear();
-      toast.success(`Inventario limpiado. ${docs.length} productos eliminados.`);
+      toast.success(
+        `Inventario limpiado. ${docs.length} productos eliminados.`,
+      );
     } catch (error) {
       console.error("Error limpiando inventario:", error);
       toast.error("Error al limpiar el inventario.");
@@ -271,7 +273,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="border-t border-dashed border-gray-200 pt-4 space-y-3">
-              <p className="text-sm font-semibold text-danger">Zona de peligro</p>
+              <p className="text-sm font-semibold text-danger">
+                Zona de peligro
+              </p>
               <Button
                 variant="destructive"
                 className="w-full h-12 gap-2"
