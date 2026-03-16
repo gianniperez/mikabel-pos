@@ -6,8 +6,10 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   flexRender,
   createColumnHelper,
+  type SortingState,
 } from "@tanstack/react-table";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, type LocalProduct } from "@/lib/dexie";
@@ -15,7 +17,16 @@ import { db as dbFirestore } from "@/lib/firebase";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useAuthStore } from "@/features/auth/stores";
 import { toast } from "sonner";
-import { Edit2, Package, AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
+import {
+  Edit2,
+  Package,
+  AlertCircle,
+  Plus,
+  Minus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { clsx } from "clsx";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/Button";
@@ -24,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { StockAdjustmentModal } from "./StockAdjustmentModal";
 import { logStockMovement } from "../api/stockMovements";
 import { ProductImage } from "@/components/ProductImage";
+import { Input } from "@/components/Input/Input";
 
 const columnHelper = createColumnHelper<LocalProduct>();
 
@@ -48,6 +60,11 @@ export const InventoryTable = ({
     product: null,
     delta: 0,
   });
+
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "name", desc: false },
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { dbUser } = useAuthStore();
   const isAdmin = dbUser?.role === "admin";
@@ -274,20 +291,53 @@ export const InventoryTable = ({
   );
 
   const filteredProducts = useMemo(() => {
-    if (!showLowStockOnly) return products;
-    return products.filter((p: LocalProduct) => p.stock <= p.minStock);
-  }, [products, showLowStockOnly]);
+    let result = products;
+
+    if (showLowStockOnly) {
+      result = result.filter((p: LocalProduct) => p.stock <= p.minStock);
+    }
+
+    if (selectedCategory !== "all") {
+      result = result.filter(
+        (p: LocalProduct) => p.categoryId === selectedCategory,
+      );
+    }
+
+    return result;
+  }, [products, showLowStockOnly, selectedCategory]);
+
+  const categoryOptions = useMemo(() => {
+    const sortedCategories = [...categories].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    return [
+      { label: "Todas las categorías", value: "all" },
+      ...sortedCategories.map((cat) => ({
+        label: cat.name,
+        value: cat.id,
+      })),
+    ];
+  }, [categories]);
 
   const table = useReactTable({
     data: filteredProducts,
     columns,
     state: {
       globalFilter,
+      sorting,
     },
     onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    autoResetPageIndex: false,
+    initialState: {
+      pagination: {
+        pageSize: 20,
+      },
+    },
     globalFilterFn: (row, columnId, filterValue) => {
       const lowerFilter = filterValue.toLowerCase();
       const product = row.original;
@@ -314,17 +364,27 @@ export const InventoryTable = ({
             placeholder="Buscar por código, nombre, marca o categoría..."
           />
         </div>
-        <Button
-          variant={showLowStockOnly ? "destructive" : "outline"}
-          onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-          className={cn(
-            "w-full md:w-auto h-12 py-0 shrink-0",
-            showLowStockOnly ? "shadow-inner border-danger" : "",
-          )}
-        >
-          <AlertCircle className="w-5 h-5" />
-          Stock Crítico
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto items-center">
+          <Input
+            type="select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            options={categoryOptions}
+            containerClassName="flex-1 md:w-48"
+            className="h-12"
+          />
+          <Button
+            variant={showLowStockOnly ? "destructive" : "outline"}
+            onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+            className={cn(
+              "shrink-0 h-12 w-12 md:w-auto p-0 md:px-4",
+              showLowStockOnly ? "shadow-inner border-danger" : "",
+            )}
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span className="hidden md:inline ml-2">Stock Crítico</span>
+          </Button>
+        </div>
       </div>
 
       {/* Table & Cards Container */}
@@ -517,7 +577,9 @@ export const InventoryTable = ({
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Package className="w-12 h-12 opacity-20" />
-                      <p className="font-medium">No se encontraron productos</p>
+                      <p className="font-medium text-gray-400">
+                        No se encontraron productos
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -527,27 +589,109 @@ export const InventoryTable = ({
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-50 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Mostrando {table.getRowModel().rows.length} de {products.length}{" "}
-            productos
+        <div className="px-6 py-4 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-gray-500 font-medium order-2 md:order-1">
+            Página{" "}
+            <span className="text-gray-900 font-bold">
+              {table.getState().pagination.pageIndex + 1}
+            </span>{" "}
+            de{" "}
+            <span className="text-gray-900 font-bold">
+              {table.getPageCount()}
+            </span>
+            <span className="hidden md:inline">
+              {" "}
+              — Total: {filteredProducts.length} productos
+            </span>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-2 order-1 md:order-2">
             <Button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
               variant="outline"
-              className="px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="px-3 h-9 min-w-0 flex items-center gap-2"
+              title="Anterior"
             >
-              Anterior
+              <ChevronLeft className="w-4 h-4" />
+              <span className="text-sm font-semibold">Anterior</span>
             </Button>
+
+            <div className="hidden md:flex items-center gap-1 px-1">
+              {(() => {
+                const totalPages = table.getPageCount();
+                const currentPage = table.getState().pagination.pageIndex + 1;
+                const pages = [];
+
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  if (currentPage <= 4) {
+                    pages.push(1, 2, 3, 4, 5, "...", totalPages);
+                  } else if (currentPage >= totalPages - 3) {
+                    pages.push(
+                      1,
+                      "...",
+                      totalPages - 4,
+                      totalPages - 3,
+                      totalPages - 2,
+                      totalPages - 1,
+                      totalPages,
+                    );
+                  } else {
+                    pages.push(
+                      1,
+                      "...",
+                      currentPage - 1,
+                      currentPage,
+                      currentPage + 1,
+                      "...",
+                      totalPages,
+                    );
+                  }
+                }
+
+                return pages.map((page, index) => {
+                  if (page === "...") {
+                    return (
+                      <span
+                        key={`dots-${index}`}
+                        className="px-1 text-gray-400 text-sm font-bold"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isPageActive = currentPage === page;
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => table.setPageIndex((page as number) - 1)}
+                      className={cn(
+                        "h-9 w-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all border-2",
+                        isPageActive
+                          ? "bg-primary border-primary text-white shadow-sm scale-110 z-10"
+                          : "bg-white border-transparent text-gray-500 hover:border-gray-200 hover:text-primary",
+                      )}
+                    >
+                      {page}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+
             <Button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               variant="outline"
-              className="px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="px-3 h-9 min-w-0 flex items-center gap-2"
+              title="Siguiente"
             >
-              Siguiente
+              <span className="text-sm font-semibold">Siguiente</span>
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>

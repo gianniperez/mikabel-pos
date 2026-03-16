@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, getDocs } from "firebase/firestore";
 import { db as firestore } from "@/lib/firebase";
 import {
   db as dexie,
@@ -19,6 +19,36 @@ export const useInventorySync = (enabled: boolean) => {
 
     const timer = setTimeout(() => setIsSyncing(true), 0);
     console.log("Iniciando sincronización de inventario...");
+
+    const reconcileData = async () => {
+      try {
+        // 1. Reconciliar Categorías
+        const firestoreCats = await getDocs(collection(firestore, "categories"));
+        const firestoreCatIds = new Set(firestoreCats.docs.map((doc) => doc.id));
+        const localCats = await dexie.categories.toArray();
+        for (const cat of localCats) {
+          if (!firestoreCatIds.has(cat.id)) {
+            await dexie.categories.delete(cat.id);
+            console.log(`Categoría huérfana eliminada: ${cat.id}`);
+          }
+        }
+
+        // 2. Reconciliar Productos
+        const firestoreProds = await getDocs(collection(firestore, "products"));
+        const firestoreProdIds = new Set(firestoreProds.docs.map((doc) => doc.id));
+        const localProds = await dexie.products.toArray();
+        for (const prod of localProds) {
+          if (!firestoreProdIds.has(prod.id)) {
+            await dexie.products.delete(prod.id);
+            console.log(`Producto huérfano eliminado: ${prod.id}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error en reconciliación de datos:", error);
+      }
+    };
+
+    reconcileData();
 
     // 1. Suscripción a Categorías
     const qCategories = query(collection(firestore, "categories"));
