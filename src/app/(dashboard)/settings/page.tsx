@@ -11,12 +11,17 @@ import {
   PackageOpen,
   RefreshCw,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { importProductsFromJson } from "@/features/inventory/services/importService";
 import { useRef, useState } from "react";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { db as dbFirestore } from "@/lib/firebase";
+import { collection, getDocs, writeBatch } from "firebase/firestore";
+import { db } from "@/lib/dexie";
 
 export default function SettingsPage() {
   const { dbUser } = useAuthStore();
@@ -37,6 +42,8 @@ export default function SettingsPage() {
     total: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   if (dbUser && dbUser.role !== "admin") {
     redirect("/");
@@ -78,6 +85,30 @@ export default function SettingsPage() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleClearInventory = async () => {
+    setIsClearing(true);
+    try {
+      // Borrar todos los docs de Firestore en batches de 500
+      const snapshot = await getDocs(collection(dbFirestore, "products"));
+      const CHUNK_SIZE = 500;
+      const docs = snapshot.docs;
+      for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+        const batch = writeBatch(dbFirestore);
+        docs.slice(i, i + CHUNK_SIZE).forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+      }
+      // Borrar Dexie local también
+      await db.products.clear();
+      toast.success(`Inventario limpiado. ${docs.length} productos eliminados.`);
+    } catch (error) {
+      console.error("Error limpiando inventario:", error);
+      toast.error("Error al limpiar el inventario.");
+    } finally {
+      setIsClearing(false);
+      setShowClearConfirm(false);
+    }
   };
 
   return (
@@ -238,9 +269,38 @@ export default function SettingsPage() {
               mismo ID interno. (Próxima mejora: detección de duplicados por
               código).
             </div>
+
+            <div className="border-t border-dashed border-gray-200 pt-4 space-y-3">
+              <p className="text-sm font-semibold text-danger">Zona de peligro</p>
+              <Button
+                variant="destructive"
+                className="w-full h-12 gap-2"
+                onClick={() => setShowClearConfirm(true)}
+                disabled={isClearing}
+              >
+                {isClearing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Trash2 className="w-5 h-5" />
+                )}
+                {isClearing ? "Eliminando..." : "Limpiar todo el inventario"}
+              </Button>
+              <p className="text-xs text-gray-400 text-center">
+                Elimina todos los productos. No se puede deshacer.
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClearInventory}
+        title="¿Limpiar todo el inventario?"
+        description="Esta acción eliminará TODOS los productos permanentemente de Firestore y del dispositivo. No se puede deshacer."
+        confirmText="Sí, eliminar todo"
+      />
     </div>
   );
 }
